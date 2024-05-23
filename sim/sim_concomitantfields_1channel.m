@@ -25,7 +25,6 @@ addpath(genpath('/Users/ziwei/Documents/matlab/multi_RF/third_party/Bloch_simula
 % addpath(genpath('/Users/ziwei/Documents/matlab/bSTAR_seq'));
 % addpath(genpath('/Users/ziwei/Documents/matlab/SOSP_recon/utils'));
 
-
 %% Constant definitions
 gamma_uT = 267.5221;       % [rad/sec/uT]
 gamma_mT = gamma_uT * 1e3; % [rad/sec/uT] * [1e3uT/mT] => *1e3 [rad/sec/mT]
@@ -66,12 +65,12 @@ K = k;
 % dicom_path = '/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F10_64';
 
 % 5mm off isocenter
-load /Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F5_64/fieldmap_b0_fov220mm_matrix64_off_5cm_03312024.mat
-dicom_path = '/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F5_64';
+% load /Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F5_64/fieldmap_b0_fov220mm_matrix64_off_5cm_03312024.mat
+% dicom_path = '/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F5_64';
 
 % 0mm isocenter
-% load /Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F0_64/fieldmap_b0_fov220mm_matrix64_02282024.mat
-% dicom_path = '/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F0_64';
+load /Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F0_64/fieldmap_b0_fov220mm_matrix64_02282024.mat
+dicom_path = '/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F0_64';
 
 cd(dicom_path);
 dicom_file = dir([dicom_path, '/*.IMA']);
@@ -80,8 +79,10 @@ b1_mag = double(dicomread(dicom_file.name))/10/79.99; % unitless scale
 
 % load('/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F15_64/mask_F15.mat'); % off isocenter 15cm
 % load('/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F10_64/mask_F10.mat'); % off isocenter 10cm
-load('/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F5_64/mask_F5.mat');  % off isocenter  5cm
-% load('/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F0_64/mask_F0.mat');
+% load('/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F5_64/mask_F5.mat');  % off isocenter  5cm
+load('/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F0_64/mask_F0.mat');
+% downsample the mask 
+m = imresize(m,[64,64], Method='nearest');
 
 % generate X Y and Z
 pixel_spacing = 3.4375e-3; % [m]
@@ -101,9 +102,9 @@ Z = zeros(size(X));
 % 10mm
 % load /Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F10_64/fieldmap_b0_fov220mm_matrix64_off_10cm_03302024.mat
 % 5mm
-load /Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F5_64/fieldmap_b0_fov220mm_matrix64_off_5cm_03312024.mat
+% load /Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F5_64/fieldmap_b0_fov220mm_matrix64_off_5cm_03312024.mat
 % 0mm
-% load /Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F0_64/fieldmap_b0_fov220mm_matrix64_02282024.mat
+load /Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F0_64/fieldmap_b0_fov220mm_matrix64_02282024.mat
 
 b0 = fieldmap .* m ./ (gamma_uT / (2*pi)); % [uT] 
 
@@ -111,7 +112,7 @@ b0 = fieldmap .* m ./ (gamma_uT / (2*pi)); % [uT]
 FOVx = max(X(:)) - min(X(:)); % [m]
 FOVy = max(Y(:)) - min(Y(:)); % [m]
 Z = Z * 0;
-zoff = 5e-2;                  % [m] % please change the off-isocenter zoff to match specific displacement
+zoff = 0e-2;                  % [m] % please change the off-isocenter zoff to match specific displacement
 
 %% replace b1 mag
 tx_phase = zeros(base_resolution);
@@ -172,16 +173,16 @@ for ii = 1 % : nr_B0
     B0 = B0_list(1);   % main magnetic strength [T]
     
     % Set up function for system matrix
-%     afun  = @(k, G)(STA_maxwell_system_matrix_con(xlist, k, G, B0, opt.dt * (1:size(k,1)), tx, b0, m, 'loopcalc'));
-    afun2 = @(k)(STA_system_matrix(xlist, k, opt.dt * (1:size(k,1)), tx, b0, m, 'loopcalc'));
+    afun  = @(k, G)(STA_maxwell_system_matrix_con(xlist, k, G, B0, opt.dt * (1:size(k,1)), tx, b0, m, 'loopcalc'));
+%    afun2 = @(k)(STA_system_matrix(xlist, k, opt.dt * (1:size(k,1)), tx, b0, m, 'loopcalc'));
 
-    tic;
-    [bb,Gv] = reVERSE_GIRF(P(idx), K, afun2, gcor, opt);
-    Time_reVERSE = toc;
-    
 %     tic;
-%     [bb, Gv] = reVERSE_GIRF_con(P(idx), K, afun, gcor, opt);
-%     Time_reVERSE_con = toc;
+%     [bb,Gv] = reVERSE_GIRF(P(idx), K, afun2, gcor, opt);
+%     Time_reVERSE = toc;
+    
+    tic;
+    [bb, Gv] = reVERSE_GIRF_con(P(idx), K, afun, gcor, opt);
+    Time_reVERSE_con = toc;
 
     % Outputs
     rf = bb{end};   % [mT]
