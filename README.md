@@ -48,8 +48,11 @@ Code for generating simulation results for the original and proposed methods in 
 
 ## Dependencies
 [reVERSE_GIRF](https://github.com/mriphysics/reverse-GIRF?tab=readme-ov-file) by Shaihan Malik, July 2015.
+
 [Phase_relaxed_CPMG_excitation](https://github.com/mriphysics/phase_relaxed_CPMG_excitation) by Shaihan Malik, July 2015.
+
 [lsqrSOL](https://github.com/areslp/matlab/tree/master/lsqrSOL) for solving a linear non-square matrix problem. 
+
 [Bloch_simulation](http://mrsrl.stanford.edu/~brian/blochsim/) by Brian Hargreaves. 
 
 
