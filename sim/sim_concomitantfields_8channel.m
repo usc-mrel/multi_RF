@@ -86,6 +86,7 @@ gcor = @(x)(gradient_distort_GIRF(x, girf.ff, girf.Hw, dt, 10));
 
 %% Example design: Include GIRF
 % Set default options
+concomitant_correct = 1; % switch between original and proposed methods
 opt        = reVERSE_init;
 dt         = opt.dt;        % sampling dwell time [usec]
 opt.lambda = 1;
@@ -107,66 +108,62 @@ mxyz_offcenter = zeros(N1, N2, 3, nr_B0, 'double');
 for ii = 1 % : nr_B0
     
     B0 = B0_list(1);   % main magnetic strength [T]
-    
-    % Set up function for system matrix
-    % afun  = @(k, G)(STA_maxwell_system_matrix_con(xlist, k, G, B0, opt.dt * (1:size(k,1)), tx, b0, m, 'loopcalc'));
-    afun2 = @(k)(STA_system_matrix(xlist, k, opt.dt * (1:size(k,1)), tx, b0, m, 'loopcalc'));
-    
-    for jj = 1 %: length(K_traj)
 
-       tic;
-       [bb,Gv] = reVERSE_GIRF(P(idx), K, afun2, gcor, opt);
-       Time_reVERSE = toc;
+    % Set up function for system matrix
+    if concomitant_correct
+        afun  = @(k, G)(STA_maxwell_system_matrix_con(xlist, k, G, B0, opt.dt * (1:size(k,1)), tx, b0, m, 'loopcalc'));
+        tic;
+        [bb, Gv] = reVERSE_GIRF_con(P(idx), K, afun, gcor, opt);
+        Time_reVERSE_con = toc;
+    else
+        afun2 = @(k)(STA_system_matrix(xlist, k, opt.dt * (1:size(k,1)), tx, b0, m, 'loopcalc'));
+        tic;
+        [bb,Gv] = reVERSE_GIRF(P(idx), K, afun2, gcor, opt);
+        Time_reVERSE = toc;
+    end
     
-%         tic;
-%         [bb, Gv] = reVERSE_GIRF_con(P(idx), K, afun, gcor, opt);
-%         Time_reVERSE_con = toc;
+    % Outputs
+    rf = bb{end};   % [mT]
+    G  = Gv{end};   % [mT/m]
     
-        % Outputs
-        rf = bb{end};   % [mT]
-        G  = Gv{end};   % [mT/m]
-        
-        duration(jj) = dt*1e3*length(G);
-    
-        %% Perform Bloch simulation
-        N_lambda = length(idx); % number of voxels within a mask
-    
-        mx0 = zeros([N1 N2], 'double');
-        my0 = zeros([N1 N2], 'double');
-        mz0 = zeros([N1 N2], 'double');
-        mz0(idx) = 1;
-    
-        [Gedd, k] = gcor(G);  % [mT/m]
+    duration = dt*1e3*length(G);
+
+    %% Perform Bloch simulation
+    N_lambda = length(idx); % number of voxels within a mask
+
+    mx0 = zeros([N1 N2], 'double');
+    my0 = zeros([N1 N2], 'double');
+    mz0 = zeros([N1 N2], 'double');
+    mz0(idx) = 1;
+
+    [Gedd, k] = gcor(G);  % [mT/m]
         
     %%
-        % perform bloch equations
-        start_time = tic;
-        for lambda = 1 : N_lambda
-            
-            [idx1,idx2] = ind2sub([N1 N2], idx(lambda));
-            fprintf('Performing Bloch simulation at (%3d/%3d)... ', lambda, N_lambda);
-            
-            % rf_out: [mT]   * [T/1e3mT] * [1e4G/T]             => *1e1 [G]
-            % G_out : [mT/m] * [T/1e3mT] * [1e4G/T] * [m/1e2cm] => *1e-1[G/cm]
-   
-            rf_combined = sum(bsxfun(@times, rf, reshape(tx(idx1,idx2,:), [1 Nc])), 2); 
-            df = b0(idx1, idx2) * gamma_uT / (2 * pi); % [uT] * [rad/sec/uT] * [cycle/2pi rad] => [Hz]
-                    
-            % off iso-center
-            dp = cat(3, X(idx1,idx2), Y(idx1,idx2), Z(idx1,idx2) + zoff) * 1e2; % [m] * [1e2cm/m] => [cm]
-            
-            [mx,my,mz] = bloch_maxwell(rf_combined*1e1, Gedd*1e-1, dt, T1, T2, df, dp, 0, B0, alpha, g, mx0(idx1,idx2), my0(idx1,idx2), mz0(idx1,idx2));
-            
-            mxyz_offcenter(idx1, idx2, :, ii, jj) = cat(3, mx, my, mz);
-            fprintf('done! (%5.4f sec)\n', toc(start_time));
-
-%             cur_dir = pwd;    
-%            save(sprintf('blochmex_B0%.2f_offc%.1fcm_iter%d_dur%.3f_dr%.2fcm_lambda%1.0f.mat', B0, zoff*1e2, opt.Nstop, duration(jj), dr, opt.lambda), 'mxyz_offcenter');
-%             cd(cur_dir);
-                    
-        end
-        % clear mx my mz rf_combined Gedd bb Gv rf G 
+    % perform bloch equations
+    start_time = tic;
+    for lambda = 1 : N_lambda
         
+        [idx1,idx2] = ind2sub([N1 N2], idx(lambda));
+        fprintf('Performing Bloch simulation at (%3d/%3d)... ', lambda, N_lambda);
+        
+        % rf_out: [mT]   * [T/1e3mT] * [1e4G/T]             => *1e1 [G]
+        % G_out : [mT/m] * [T/1e3mT] * [1e4G/T] * [m/1e2cm] => *1e-1[G/cm]
+
+        rf_combined = sum(bsxfun(@times, rf, reshape(tx(idx1,idx2,:), [1 Nc])), 2); 
+        df = b0(idx1, idx2) * gamma_uT / (2 * pi); % [uT] * [rad/sec/uT] * [cycle/2pi rad] => [Hz]
+                
+        % off iso-center
+        dp = cat(3, X(idx1,idx2), Y(idx1,idx2), Z(idx1,idx2) + zoff) * 1e2; % [m] * [1e2cm/m] => [cm]
+        
+        [mx,my,mz] = bloch_maxwell(rf_combined*1e1, Gedd*1e-1, dt, T1, T2, df, dp, 0, B0, alpha, g, mx0(idx1,idx2), my0(idx1,idx2), mz0(idx1,idx2));
+        
+        mxyz_offcenter(idx1, idx2, :, ii, jj) = cat(3, mx, my, mz);
+        fprintf('done! (%5.4f sec)\n', toc(start_time));
+
+%       cur_dir = pwd;    
+%       save(sprintf('blochmex_B0%.2f_offc%.1fcm_iter%d_dur%.3f_dr%.2fcm_lambda%1.0f.mat', B0, zoff*1e2, opt.Nstop, duration(jj), dr, opt.lambda), 'mxyz_offcenter');
+%       cd(cur_dir);
+            
     end
 end
 

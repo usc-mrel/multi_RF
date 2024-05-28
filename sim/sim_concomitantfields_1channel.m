@@ -139,6 +139,7 @@ gcor = @(x)(apply_GIRF_tx(permute(x, [1 3 2]), dt, sR, tRR));
 
 %% Example design: Include GIRF
 % Set default options
+concomitant_correct = 1; % switch between original and proposed methods
 opt        = reVERSE_init_test;
 opt.dt     = dt;            % sampling dwell time [usec]
 opt.lambda = 1;
@@ -161,17 +162,18 @@ for ii = 1 % : nr_B0
     B0 = B0_list(1);   % main magnetic strength [T]
     
     % Set up function for system matrix
-    afun  = @(k, G)(STA_maxwell_system_matrix_con(xlist, k, G, B0, opt.dt * (1:size(k,1)), tx, b0, m, 'loopcalc'));
-%    afun2 = @(k)(STA_system_matrix(xlist, k, opt.dt * (1:size(k,1)), tx, b0, m, 'loopcalc'));
-
-%     tic;
-%     [bb,Gv] = reVERSE_GIRF(P(idx), K, afun2, gcor, opt);
-%     Time_reVERSE = toc;
+    if concomitant_correct
+        afun  = @(k, G)(STA_maxwell_system_matrix_con(xlist, k, G, B0, opt.dt * (1:size(k,1)), tx, b0, m, 'loopcalc'));
+        tic;
+        [bb, Gv] = reVERSE_GIRF_con(P(idx), K, afun, gcor, opt);
+        Time_reVERSE_con = toc;
+    else
+        afun2 = @(k)(STA_system_matrix(xlist, k, opt.dt * (1:size(k,1)), tx, b0, m, 'loopcalc'));
+        tic;
+        [bb,Gv] = reVERSE_GIRF(P(idx), K, afun2, gcor, opt);
+        Time_reVERSE = toc;
+    end
     
-    tic;
-    [bb, Gv] = reVERSE_GIRF_con(P(idx), K, afun, gcor, opt);
-    Time_reVERSE_con = toc;
-
     % Outputs
     rf = bb{end};   % [mT]
     G  = Gv{end};   % [mT/m]
