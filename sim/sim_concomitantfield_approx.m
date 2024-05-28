@@ -1,22 +1,14 @@
 % demo_Pauly_1989_JMR_spiral2d_concomitant_fields.m
-% Written by Namgyun Lee
-% Email: ggang56@gmail.com
-% Started: 05/02/2020, Last modified: 05/06/2020
+% Written by Namgyun Lee, Modified by Ziwei Zhao
 
 %% Clean slate
-%close all; clear all; clc;
-%B0_swp = [3.5 4 4.5 5 5.5 6 6.5 7];
-%B0_swp = [0.1 0.3 0.5 0.7 0.9 1];
-%B0_swp = [0.03 0.2];
-B0_swp  = [0.55];
+% close all; clear all; clc;
+B0_swp  = [0.2 0.55 1.5 3 7];
 
 for iB0 = 1:length(B0_swp)
-    
-iB0
 
 %% Add paths
 cd('/Users/ziwei/Documents/matlab/STA_maxwell/thirdparty/Bloch_simulator');
-%addpath(genpath('.\thirdparty'));
 
 %% Define parameters
 XFOV       = 8e-2;       % XFOV of unaliased excitation [m]
@@ -37,11 +29,7 @@ gamma = 42577.46778 * (1e3 * 2 * pi); % gyromagnetic ratio for 1H [rad/sec/T]
 %% Calculate a sampling interval in time [sec]
 w0 = -gamma * B0;                    % [rad/sec/T] * [T] => [rad/sec]
 dt_max = (2 * pi) /(2 * abs(w0));    % [sec]
-%dt = 0.5e-9;                        % RF/gradient dwell time [sec] (e.g: 4 usec)
-%1/(2*((abs(w0)/(2*pi)*1e-3)+2))*1e-3
 dt = 7e-10;
-
-%return
 
 %% Design a constant-angular-rate spiral excitation k-space trajectory
 %--------------------------------------------------------------------------
@@ -82,20 +70,6 @@ Gx = -(A * 1e-2)/ (gamma * T * 1e-4) * (2 * pi * n * (1 - t / T) .* sin(2 * pi *
 Gy =  (A * 1e-2)/ (gamma * T * 1e-4) * (2 * pi * n * (1 - t / T) .* cos(2 * pi * n * t / T) - sin(2 * pi * n * t / T));
 Gz = zeros(Nt,1, 'double');
 
-% %% Calculate the Fourier transform of gradients
-% dw = 2 * pi / (Nt * dt); % [rad/sec]
-% w = (-floor(Nt/2):ceil(Nt/2)-1).' * dw; % [rad/sec]
-% 
-% Gx_tx = fftshift(fft(Gx .* cos(w0 * t)));
-% Gy_tx = fftshift(fft(Gy .* cos(w0 * t)));
-% Gz_tx = fftshift(fft(Gz));
-% 
-% % figure('Color', 'w');
-% % plot(w, abs(Gx_tx));
-% % xlabel('Frequency [rad/sec]');
-% % 
-% % return
-
 %% Calculate an RF waveform that produces a cylindrical Gaussian weighting of k-space
 B1 = (A * 1e-2) / (gamma * T * 1e-4) * exp(-beta^2 * (1 - t / T).^2) .* sqrt((2 * pi * n * (1 - t / T)).^2 + 1);
 
@@ -123,7 +97,7 @@ Ny   = FOVy / dy; % number of samples(col,y) in the desired pattern
 Nz   = 1;
 Nv   = Nx * Ny;   % total number of voxels
 
-z_offset = 20 * 1e-2;                         % [m]
+z_offset = 20 * 1e-2;                         % [m] % please change it based on different settings
 x_range = (-floor(Nx/2):ceil(Nx/2)-1).' * dx; % [m]
 y_range = (-floor(Ny/2):ceil(Ny/2)-1).' * dy; % [m]
 z_range = (-floor(Nz/2):ceil(Nz/2)-1).' * dz; % [m]
@@ -265,7 +239,6 @@ set(hc4, 'Position', [cpos4(1)-0.014 cpos4(2) cpos4(3) cpos4(4)]);
 %save('results_01T_7e_9dt_25Nxy.mat','mxyz_concomitant', 'mxyz_rf', 'mxyz_concomitant_rf', 'mxyz_bloch_siegert');
 
 %% display NMSE -- ziwei
-
 diff_real = sum((real(mxy_bloch_siegert) - real(mxy_concomitant_rf)).^2) / sum((real(mxy_concomitant_rf).^2));
 diff_imag = sum((imag(mxy_bloch_siegert) - imag(mxy_concomitant_rf)).^2) / sum((imag(mxy_concomitant_rf).^2));
 

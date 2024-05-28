@@ -18,13 +18,6 @@ addpath(genpath('/Users/ziwei/Documents/matlab/multi_RF/thirdparty'));
 addpath('/Users/ziwei/Documents/matlab/multi_RF');
 addpath(genpath('/Users/ziwei/Documents/matlab/multi_RF/third_party/Bloch_simulator'));
 
-% addpath('/Users/ziwei/Documents/matlab/STA_maxwell/spiral2d_rf_pulse_design');
-% addpath('/Users/ziwei/Documents/matlab/packages/rFOV_code/utils');
-
-% addpath(genpath('/Users/ziwei/Documents/matlab/bSTAR_recon'));
-% addpath(genpath('/Users/ziwei/Documents/matlab/bSTAR_seq'));
-% addpath(genpath('/Users/ziwei/Documents/matlab/SOSP_recon/utils'));
-
 %% Constant definitions
 gamma_uT = 267.5221;       % [rad/sec/uT]
 gamma_mT = gamma_uT * 1e3; % [rad/sec/uT] * [1e3uT/mT] => *1e3 [rad/sec/mT]
@@ -33,8 +26,6 @@ flip = 90;                 % total flip angle [degrees]
 flip = flip * pi / 180;
 
 %% Design initial spiral trajectory
-% K_traj = dir('/Users/ziwei/Documents/matlab/STA_maxwell/K_*.mat');
-% ace    = [2 1 0.5 0.25];
 T          = 26e-3;         % pulse duration [sec]
 dt         = 1e-6;          % RF/gradient raster time [sec] 3.2e-6 works
 t          = [0:dt:T-dt]';  % seconds, time vector
@@ -42,16 +33,13 @@ dr         = 0.25;          % resolution of trajectory [cm]
 kmax       = 1/2/dr;        % [cycles/cm], max radius in k-space
 fov        = 12.8;          % XFOV of unaliased excitation [cm] 12.8 in the simulation
 
-r0         = [0 0].';        % offset [m]
+r0         = [0 0].';       % offset [m]
 
 % spiral waveforms 
 N = kmax/(1/fov);           % number of turns, no acceleration
 k = 2*pi*kmax*(1-t/T).*exp(1i*2*pi*N*(1-t/T)); % [rad/cm] - kx = real(k); ky = imag(k);
 k = [real(k) imag(k) zeros(length(k),1)];
 k = k*100;                  % [rad/cm] -> [rad/m]
-
-% figure; plot(k(:,1), k(:,2), '-');
-% figure; plot(t, k(:,1)); hold on; plot(t, k(:,2));
 
 K = k;
 
@@ -234,9 +222,8 @@ for ii = 1 % : nr_B0
         fprintf('done! (%5.4f sec)\n', toc(start_time));
 
         cur_dir = pwd;  
-        %cd('/Users/ziwei/Documents/matlab/STA_maxwell/sim_code_MRM/experiment_results/03312024_0cm/');
-        %save(sprintf('bloch_055T_B0%.2f_1tx_offc%.1fcm_iter%d_dur%.3f_dr%.2fcm_lambda%1.0f.mat', B0, zoff*1e2, opt.Nstop, duration, dr, opt.lambda), 'mxyz_offcenter');
-        %save(sprintf('bloch_055T_1tx_offc%.1fcm_iter%d_dur%.3f_dr%.2fcm_rf_g_dt1e-6_fixcoord_mxyz.mat', zoff*1e2, opt.Nstop, duration, dr), 'rf', 'G', 'dt', 'mxyz_offcenter');
+        % cd('/Users/ziwei/Documents/matlab/STA_maxwell/sim_code_MRM/experiment_results/03312024_0cm/');
+        % save(sprintf('bloch_055T_1tx_offc%.1fcm_iter%d_dur%.3f_dr%.2fcm_rf_g_dt1e-6_fixcoord_mxyz.mat', zoff*1e2, opt.Nstop, duration, dr), 'rf', 'G', 'dt', 'mxyz_offcenter');
         cd(cur_dir);
                 
     end

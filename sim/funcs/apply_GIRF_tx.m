@@ -276,7 +276,6 @@ M = length(GPred);
 t = (0:M-1)*dt;
 kPred_tx = -gamma_mT*flipud(cumtrapz(t,flipud(GPred))); % rad/mT * mT/m = rad/m
 
-
 % Permute
 % kPred = permute(kPred,[1 3 2]);
 % kNom  = permute(kNom,[1 3 2]);
@@ -290,7 +289,7 @@ kPred_tx = -gamma_mT*flipud(cumtrapz(t,flipud(GPred))); % rad/mT * mT/m = rad/m
 % subplot(2,2,4); plot(GNom(:,:,2),GPred(:,:,2),'-')
 
 %%%%%%%%%%%%%%%%%
-%%  calculate gridder  %
+%%  calculate gridder
 %%%%%%%%%%%%%%%%%
 %
 % omega = kPred(:,:,1:2)*(pi/max(max(max(kPred))));
@@ -320,7 +319,7 @@ end
 
 % matlab:
 % function w = sym_hanning(n)
-% %SYM_HANNING   Symmetric Hanning window.
+% %   SYM_HANNING Symmetric Hanning window.
 % %   SYM_HANNING Returns an exactly symmetric N point window by evaluating
 % %   the first half and then flipping the same samples over the other half.
 %
@@ -338,7 +337,7 @@ end
 %
 % %---------------------------------------------------------------------
 % function w = calc_hanning(m,n)
-% %CALC_HANNING   Calculates Hanning window samples.
+% %   CALC_HANNING Calculates Hanning window samples.
 % %   CALC_HANNING Calculates and returns the first M points of an N point
 % %   Hanning window.
 %
