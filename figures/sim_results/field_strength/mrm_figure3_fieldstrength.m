@@ -14,7 +14,7 @@ addpath(genpath('/Users/ziwei/Documents/matlab/STA_maxwell/thirdparty'));
 
 %% load exciatation patterns for reVERSE method
 reverse_girf = zeros(80,80,3,5);
-tmp = dir('/Users/ziwei/Documents/matlab/STA_maxwell/sim_code_MRM/sim_results/field_strength/bloch_B0*.mat');
+tmp = dir('/Users/ziwei/Documents/matlab/multi_RF/figures/sim_results/field_strength/bloch_B0*.mat');
 for i = 1:length(tmp)
     load(tmp(i).name);
     reverse_girf(:,:,:,i) = mxyz_offcenter;
@@ -22,15 +22,14 @@ end
 
 % load proposed method results
 reverse_max = zeros(80,80,3,5);
-tmp = dir('/Users/ziwei/Documents/matlab/STA_maxwell/sim_code_MRM/sim_results/field_strength/blochmex_B0*.mat');
+tmp = dir('/Users/ziwei/Documents/matlab/multi_RF/figures/sim_results/field_strength/blochmex_B0*.mat');
 for i = 1:length(tmp)
     load(tmp(i).name);
     reverse_max(:,:,:,i) = mxyz_offcenter;
 end
 
-
 %% parameters 
-load /Users/ziwei/Documents/matlab/STA_maxwell/spiral2d_rf_pulse_design/phase_relaxed_CPMG_excitation/b0_b1_maps_2d.mat;
+load /Users/ziwei/Documents/matlab/multi_RF/third_party/phase_relaxed_CPMG_excitation/b0_b1_maps_2d.mat;
 
 [N1,N2,Nc] = size(tx);
 
@@ -75,18 +74,11 @@ ylabel(hc, 'Scaled Magnetization [%]');
 text((N2+1)*3 , -15, 'z = 10mm', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize+2, 'FontWeight','bold');
 
 text(N2/2         , 0, 'Target', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
-%text(N2/2         , 0, sprintf('re-VERSE'), 'Color', 'yellow', 'VerticalAlignment', 'top', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
 text(N2/2+(N2+1)  , 0, {sprintf('%gT', 0.2)},  'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
 text(N2/2+(N2+1)*2, 0, {sprintf('%gT', 0.55)}, 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
-text(N2/2+(N2+1)*3, 0, {sprintf('%gT', 1)},    'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
+text(N2/2+(N2+1)*3, 0, {sprintf('%gT', 1.5)},  'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
 text(N2/2+(N2+1)*4, 0, {sprintf('%gT', 3)},    'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
 text(N2/2+(N2+1)*5, 0, {sprintf('%gT', 7)},    'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
-
-% text(N2/2, (N1+1)*2, sprintf('Proposed'), 'Color', 'yellow', 'VerticalAlignment', 'top', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
-% text(-3, N2/2          , 'Imaginary', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize, 'rotation', 90);
-% text(-3, N2/2+N2+1    ,  'Real'     , 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize, 'rotation', 90);
-% text(-3, N2/2+(N2+1)*2,  'Imaginary', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize, 'rotation', 90);
-% text(-3, N2/2+(N2+1)*3,  'Real'     , 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize, 'rotation', 90);
 
 % Draw arrows
 cx = floor(N1/2) + 1;
@@ -108,10 +100,6 @@ text(cx+5 , cy-16+(N1+1)*2, '$\bf{y}$', 'Color', 'w', 'Interpreter', 'latex', 'F
 for i = 1:5 % field strengths 
         mxy_ori = mxy_reverse(:,:,i);
         mxy_pro = mxy_maxverse(:,:,i);
-%         NRMSE_ori_real(i) = sqrt(sum(sum((real(mxy_ori) - real(P_)).^2))) / sqrt(sum(sum(abs(P_).^2)));
-%         NRMSE_ori_imag(i) = sqrt(sum(sum((imag(mxy_ori) - imag(P_)).^2))) / sqrt(sum(sum(abs(P_).^2)));
-%         NRMSE_pro_real(i) = sqrt(sum(sum((real(mxy_pro) - real(P_)).^2))) / sqrt(sum(sum(abs(P_).^2)));
-%         NRMSE_pro_imag(i) = sqrt(sum(sum((imag(mxy_pro) - imag(P_)).^2))) / sqrt(sum(sum(abs(P_).^2)));
         NRMSE_ori(i) = sqrt(sum(sum((abs(mxy_ori) - abs(P_)).^2))) / sqrt(sum(sum(abs(P_).^2)));
         NRMSE_pro(i) = sqrt(sum(sum((abs(mxy_pro) - abs(P_)).^2))) / sqrt(sum(sum(abs(P_).^2)));
 end
@@ -119,18 +107,10 @@ end
 figure;  plot(NRMSE_ori, 'LineWidth', 3, 'Color', [0.4940 0.1840 0.5560]);
 hold on; plot(NRMSE_pro, 'LineWidth', 3, 'Color', [0.8500 0.3250 0.0980]);
 set(gca, 'FontSize', 20); grid on;
-xticklabels({'0.2T', '0.55T', '1.0T', '3.0T', '7.0T'});
+xticklabels({'0.2T', '0.55T', '1.5T', '3.0T', '7.0T'});
 xlim([0.8 5]);
-ylim([0.04 0.5]); box off; 
+ylim([0 0.5]); box off; 
 ax = gca;
 ax.LineWidth = 2;
 title('NRMSE'); legend('Original', 'Proposed');
-% hold on; plot(NRMSE_ori,'x', 'MarkerIndices', 1, 'MarkerFaceColor', 'red', 'MarkerEdgeColor', 'red', 'MarkerSize', 16, 'LineWidth', 6);
-% hold on; plot(NRMSE_pro,'x', 'MarkerIndices', 1, 'MarkerFaceColor', 'red', 'MarkerEdgeColor', 'red', 'MarkerSize', 16, 'LineWidth', 6);
-% hold on; plot(NRMSE_ori,'o', 'MarkerIndices', [2:5], 'MarkerFaceColor', 'green', 'MarkerEdgeColor', 'green', 'MarkerSize', 10, 'LineWidth', 2);
-% hold on; plot(NRMSE_pro,'o', 'MarkerIndices', [2:5], 'MarkerFaceColor', 'green', 'MarkerEdgeColor', 'green', 'MarkerSize', 10, 'LineWidth', 2);
-
-
-% mark 
-
     

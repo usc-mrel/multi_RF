@@ -77,13 +77,9 @@ text(N2/2+(N2+1)*2, 0, {'17.66ms'},  'VerticalAlignment', 'bottom', 'HorizontalA
 text(N2/2+(N2+1)*3, 0, {'52.07ms'},  'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
 
 %% NRMSE 
-for i = 1:4 % field strengths 
+for i = 1:4 
         mxy_ori = mxy_reverse(:,:,i);
         mxy_pro = mxy_maxverse(:,:,i);
-%         NRMSE_ori_real(i) = sqrt(sum(sum((real(mxy_ori) - real(P_)).^2))) / sqrt(sum(sum(abs(P_).^2)));
-%         NRMSE_ori_imag(i) = sqrt(sum(sum((imag(mxy_ori) - imag(P_)).^2))) / sqrt(sum(sum(abs(P_).^2)));
-%         NRMSE_pro_real(i) = sqrt(sum(sum((real(mxy_pro) - real(P_)).^2))) / sqrt(sum(sum(abs(P_).^2)));
-%         NRMSE_pro_imag(i) = sqrt(sum(sum((imag(mxy_pro) - imag(P_)).^2))) / sqrt(sum(sum(abs(P_).^2)));
         NRMSE_ori(i) = sqrt(sum(sum((abs(mxy_ori) - abs(P_)).^2))) / sqrt(sum(sum(abs(P_).^2)));
         NRMSE_pro(i) = sqrt(sum(sum((abs(mxy_pro) - abs(P_)).^2))) / sqrt(sum(sum(abs(P_).^2)));
 end
@@ -97,11 +93,7 @@ set(gca, 'FontSize', 20); grid on;
 xticks([1 2]);
 xticklabels({'17.66ms', '52.07ms'});
 xlim([0.8 2.2]);
-ylim([0.1 0.5]); box off; 
+ylim([0 0.6]); box off; 
 ax = gca;
 ax.LineWidth = 2;
-title('NRMSE'); legend('Original    - T2=inf', 'Proposed - T2=inf', 'Original    - T2=40ms', 'Proposed - T2=40ms');
-
-
-
-    
+title('NRMSE'); legend('Original    - T2=+\infty', 'Proposed - T2=+\infty', 'Original    - T2=40ms', 'Proposed - T2=40ms');

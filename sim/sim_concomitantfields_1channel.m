@@ -222,13 +222,12 @@ for ii = 1 % : nr_B0
         
         mxyz_offcenter(idx1, idx2, :, ii) = cat(3, mx, my, mz);
         fprintf('done! (%5.4f sec)\n', toc(start_time));
+    end
 
         cur_dir = pwd;  
         % cd('/Users/ziwei/Documents/matlab/STA_maxwell/sim_code_MRM/experiment_results/03312024_0cm/');
         % save(sprintf('bloch_055T_1tx_offc%.1fcm_iter%d_dur%.3f_dr%.2fcm_rf_g_dt1e-6_fixcoord_mxyz.mat', zoff*1e2, opt.Nstop, duration, dr), 'rf', 'G', 'dt', 'mxyz_offcenter');
         cd(cur_dir);
-                
-    end
         
     % clear mx my mz rf_combined Gedd bb Gv rf G 
     
@@ -258,11 +257,8 @@ title('Corresponding k-space');
 
 % check NRMSE
 mxy  = squeeze(complex(mxyz_offcenter(:,:,1,:), mxyz_offcenter(:,:,2,:)));
-
-for j = 1 % distance
-    mxy_ori = mxy(:,:,j);
-    NRMSE(j) = sqrt(sum(sum((abs(mxy_ori) - abs(P_)).^2)))/ sqrt(sum(sum(abs(P_).^2)))
-end
+mxy_ori = mxy;
+NRMSE = sqrt(sum(sum((abs(mxy_ori) - abs(P_)).^2)))/ sqrt(sum(sum(abs(P_).^2)))
 
 %% Display the excitation pattern
 % load re-verse method results

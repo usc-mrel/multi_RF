@@ -86,13 +86,12 @@ gcor = @(x)(gradient_distort_GIRF(x, girf.ff, girf.Hw, dt, 10));
 
 %% Example design: Include GIRF
 % Set default options
-concomitant_correct = 1; % switch between original and proposed methods
+concomitant_correct = 0; % switch between original and proposed methods
 opt        = reVERSE_init;
 dt         = opt.dt;        % sampling dwell time [usec]
 opt.lambda = 1;
 opt.Nstop  = 20;
 opt.show   = 1;
-%con_correct = 1;
 
 B0_list   = [0.55];         % [tesla]
 nr_B0     = length(B0_list);
@@ -157,14 +156,13 @@ for ii = 1 % : nr_B0
         
         [mx,my,mz] = bloch_maxwell(rf_combined*1e1, Gedd*1e-1, dt, T1, T2, df, dp, 0, B0, alpha, g, mx0(idx1,idx2), my0(idx1,idx2), mz0(idx1,idx2));
         
-        mxyz_offcenter(idx1, idx2, :, ii, jj) = cat(3, mx, my, mz);
+        mxyz_offcenter(idx1, idx2, :, ii) = cat(3, mx, my, mz);
         fprintf('done! (%5.4f sec)\n', toc(start_time));
-
-%       cur_dir = pwd;    
-%       save(sprintf('blochmex_B0%.2f_offc%.1fcm_iter%d_dur%.3f_dr%.2fcm_lambda%1.0f.mat', B0, zoff*1e2, opt.Nstop, duration(jj), dr, opt.lambda), 'mxyz_offcenter');
-%       cd(cur_dir);
-            
     end
+
+      cur_dir = pwd;    
+      save(sprintf('bloch_B0%.2f_offc%.1fcm_iter%d_dur%.3f_dr%.2fcm_lambda%1.0f.mat', B0, zoff*1e2, opt.Nstop, duration, dr, opt.lambda), 'mxyz_offcenter');
+      cd(cur_dir);
 end
 
 ind_t = 0:dt:(length(G)-1)*dt;
@@ -182,7 +180,7 @@ hold on; plot(ind_t, abs(rf(:,8)), 'LineWidth', 2);
 legend('Channel - 1', 'Channel - 2', 'Channel - 3', 'Channel - 4', 'Channel - 5',...
     'Channel - 6', 'Channel - 7', 'Channel - 8');
 ylabel('Amplitude [mT]'); xlabel('time [ms]');
-set(gca, 'FontSize', 16); title('Representive multi-channel RF @0.55T');
+set(gca, 'FontSize', 16); title('Multi-channel RF @0.55T');
 
 figure; subplot(1,2,1);
 plot(ind_t, Gedd(:,1), 'LineWidth', 2);
@@ -191,22 +189,19 @@ legend('Gx', 'Gy');
 xlabel('time [ms]'); ylabel('[mT/m]');
 xlim([0 18]); box off; grid on;
 set(gca, 'FontSize', 18);
-title('Representitive Gradient waveform');
+title('Gradient waveforms');
 subplot(1,2,2);
 plot(k(:,1), k(:,2), 'LineWidth', 2);
 box off; grid on;
 xlabel('[rads/m]'); ylabel('[rads/m]');
 xlim([-1500 1500]); ylim([-1500 1500]);
 set(gca, 'FontSize', 18); 
-title('Corresponding k-space');
+title('Excitation K-space');
 
 % check NRMSE
 mxy  = squeeze(complex(mxyz_offcenter(:,:,1,:), mxyz_offcenter(:,:,2,:)));
-
-for j = jj % distance
-    mxy_ori = mxy(:,:,j);
-    NRMSE(j) = sqrt(sum(sum((abs(mxy_ori) - abs(P_)).^2)))/ sqrt(sum(sum(abs(P_).^2)));
-end
+mxy_ori = mxy;
+NRMSE = sqrt(sum(sum((abs(mxy_ori) - abs(P_)).^2)))/ sqrt(sum(sum(abs(P_).^2)));
 
 %% Display the excitation pattern
 % load re-verse method results
