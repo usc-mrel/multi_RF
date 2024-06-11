@@ -3,7 +3,7 @@
 % Ziwei Zhao 
 % 05122024
 
-cd('/Users/ziwei/Documents/matlab/STA_maxwell/sim_code_MRM/experiment_results/');
+cd('.../multi_RF/figures/sim_results/phantom_055T/');
 folder = dir('./*cm');
 cur_dir = pwd;
 ori_mxyz = zeros(64, 64, 3, length(folder));
@@ -60,13 +60,6 @@ text(N2/2+(N2+1)*2, 0, {sprintf('z = %dcm', 10)}, 'VerticalAlignment', 'bottom',
 text(N2/2+(N2+1)*3, 0, {sprintf('z = %dcm', 15)}, 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
 
 %% NRMSE 
-% re-verse method 
-% load('/Users/ziwei/Documents/matlab/STA_maxwell/sim_code_MRM/b0b1_map_055T/F0_64/target_square_055T.mat');
-% for i = 1:4 % field strengths
-%     NRMSE_ori(i) = sqrt(sum(sum((abs(mxy_ori(:,:,1,i)) - abs(P_)).^2)))/ sqrt(sum(sum(abs(P_).^2)));
-%     NRMSE_pro(i) = sqrt(sum(sum((abs(mxy_pro(:,:,1,i)) - abs(P_)).^2)))/ sqrt(sum(sum(abs(P_).^2)));
-% end
-
 NRMSE_ori = [0.0581, 0.1908, 0.2995, 0.3821];
 NRMSE_pro = [0.0581, 0.0591, 0.0767, 0.1218];
 

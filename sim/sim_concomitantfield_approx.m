@@ -8,7 +8,7 @@ B0_swp  = [0.2 0.55 1.5 3 7];
 for iB0 = 1:length(B0_swp)
 
 %% Add paths
-cd('/Users/ziwei/Documents/matlab/STA_maxwell/thirdparty/Bloch_simulator');
+cd('.../multi_RF/third_party/Bloch_simulator');
 
 %% Define parameters
 XFOV       = 8e-2;       % XFOV of unaliased excitation [m]
@@ -162,7 +162,6 @@ for idx2 = 1:Ny
     end
 end
 
-%return;
 
 %% Display magnetization obtained with concomitant fields, RF, and conconmitant fields and RF
 mxy_concomitant    = complex(mxyz_concomitant(:,:,1), mxyz_concomitant(:,:,2));
@@ -256,7 +255,7 @@ diff.imag  = diff_imag;
 diff.mag   = diff_mag;
 diff.phase = diff_phase;
 
-% cd('/Users/zhaoziwei/Documents/MATLAB/STA_maxwell/spiral2d_concomitant_fields/abs_results/11242020');
+% save results
 % save(sprintf('results_%.3fT_7e_10dt_25Nxy_dense.mat', B0), 'mxyz_concomitant', 'mxyz_rf', 'mxyz_concomitant_rf', 'mxyz_bloch_siegert', 'diff');
 
 end

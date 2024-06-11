@@ -6,8 +6,8 @@
 clear all;
 close all;
 
-addpath(genpath('/Users/ziwei/Documents/matlab/bSTAR/lowfield_bstar/thirdparty/mapVBVD'));
-addpath(genpath('/Users/ziwei/Documents/matlab/bSTAR_seq/github/seq_asl_bstar/src/utils'));
+addpath(genpath('.../multi_RF/third_party/mapVBVD'));
+addpath(genpath('.../multi_RF/sim/funcs'));
 
 %% Setup BART library 
 cur_dir  = pwd;
@@ -18,15 +18,12 @@ startup;
 cd(cur_dir);
 
 %% 3D FLASH Recon
-root_path = '/Volumes/ZZ-drive/multi_rf_experiments/';
+root_path = '...';
 vol_num   = '03312024_off15cm';
 TEs = [37 47 57 67 77] * 1e-3; % [s]
 Necho = 5;
 
 rawdata_path = fullfile(root_path, vol_num, '/raw_data');
-% seq_path     = fullfile(root_path, vol_num, '/seq');
-% output_path  = fullfile(root_path, vol_num, '/recon_results');
-
 cd(rawdata_path);
 
 % read in siemens .dat data
@@ -41,16 +38,6 @@ for i = 1 : length(rawdata)
 
     [nread, nc, npheco, nslices] = size(raw2);
     recon_imgc = zeros(nread, npheco, nc, nslices);
-
-    %% kspace prewhiting
-%     noise_fullpath = fullfile(noise_path, ['noise_', tmp_raw(1:end-4), '.h5']);
-%     [Psi, inv_L] = calculate_receiver_noise_matrix(noise_fullpath);
-%     inv_L = inv_L(1:15, 1:15);
-%     % apply to kspace
-%     ksp_white = zeros(size(raw2));
-%     for isamp = 1:k1
-%         ksp_white(isamp,:,:) = inv_L * squeeze(raw2(isamp,:,:));
-%     end
 
     %% generate per coil images using fft
     recon_nslices = 1 / sqrt(size(raw2, 4)) * fftshift(fft(ifftshift(raw2, 4), [], 4), 4);
@@ -86,23 +73,11 @@ for i = 1:length(rawdata)
     recon_img(:,:,:,i) = squeeze(sum(conj(cmaps).* permute(recon_img_ori(:,:,:,:,i), [1 2 4 3]), 4)) ./ squeeze(sqrt(sum(abs(cmaps).^2, 4)));
 end
 
-% or - use walsh method
-%     for inslice = 1:nslices
-%         cmaps(:,:,:,inslice) = ismrm_estimate_csm_walsh(recon_img_ori(:,:,:,inslice), 32); % flipped
-%     end
-%     recon_img = squeeze(sum(conj(cmaps).* recon_img_ori, 3)) ./ squeeze(sqrt(sum(abs(cmaps).^2, 3)));
-
 for iecho = 1:5
     recon_img_up(:,:,1,iecho) = imresize(recon_img(:,:,1,iecho), 1.5);
 end
 
 as(recon_img_up);
-
-% recon_img = recon_img_up;
-% m = imbinarize(abs(recon_img(:,:,1)), 8.6e-5);
-% mask_check = abs(recon_img(:,:,1)).*(1-m);
-% figure; imshow(mask_check, []);
-% save('mask.mat', 'm');
 
 %% phase unwrapping
 img_phase = angle(recon_img); % [rad]
@@ -136,8 +111,4 @@ colormap(hot(256));
 colorbar;
 
 % fieldmap_tmp = imrotate(fieldmap, 270); % should match with the B1 map orientation
-
 save('fieldmap_b0_fov220mm_matrix64_off_15cm_03312024.mat', 'fieldmap', 'recon_img');
-
-%% DONE. 
-% potentially smooth the B0 field maps in the future

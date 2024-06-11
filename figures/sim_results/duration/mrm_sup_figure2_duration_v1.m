@@ -13,7 +13,7 @@ clc;
 %% load exciatation patterns for reVERSE method
 reverse_girf = zeros(80,80,3,4);
 index = [1 3 2 4];
-tmp = dir('/Users/ziwei/Documents/matlab/STA_maxwell/sim_code_MRM/sim_results/duration/bloch_*dr0.25cm*.mat');
+tmp = dir('.../multi_RF/figures/sim_results/duration/bloch_*dr0.25cm*.mat');
 for i = 1:length(tmp)
     load(tmp(index(i)).name);
     reverse_girf(:,:,:,i) = mxyz_offcenter;
@@ -21,14 +21,14 @@ end
 
 % load proposed method results
 reverse_max = zeros(80,80,3,4);
-tmp = dir('/Users/ziwei/Documents/matlab/STA_maxwell/sim_code_MRM/sim_results/duration/blochmex_*dr0.25cm*.mat');
+tmp = dir('.../multi_RF/figures/sim_results/duration/blochmex_*dr0.25cm*.mat');
 for i = 1:length(tmp)
     load(tmp(index(i)).name);
     reverse_max(:,:,:,i) = mxyz_offcenter;
 end
 
 %% parameters 
-load /Users/ziwei/Documents/matlab/STA_maxwell/spiral2d_rf_pulse_design/phase_relaxed_CPMG_excitation/b0_b1_maps_2d.mat;
+load('.../multi_RF/third_party/phase_relaxed_CPMG_excitation/b0_b1_maps_2d.mat');
 
 [N1,N2,Nc] = size(tx);
 

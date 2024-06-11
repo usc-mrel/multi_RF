@@ -5,15 +5,8 @@
 close all; clear all; clc;
 
 %% Set source directories
-% package_directory = 'D:\dynamic_maxgirf';
-% pulseq_directory  = 'D:\pulseq\pulseq';
-addpath(genpath('/Users/ziwei/Documents/matlab/bSTAR_seq/lowfield_bstar'));
-addpath(genpath('/Users/ziwei/Documents/matlab/bSTAR_seq/github/Dbstar/Dbstar_seq'));
-addpath(genpath('/Users/ziwei/Documents/matlab/mintgrad'));
-
-%% Add source directories to search path
-% addpath(genpath(package_directory));
-% addpath(genpath(pulseq_directory));
+addpath(genpath('.../multi_RF/third_party/pulseq'));
+addpath(genpath('.../multi_RF/third_party/mintgrad'));
 
 %% Load an input file
 input_pulseq_cartesian_spin_echo_multi_RF;
@@ -84,7 +77,7 @@ mkdir(output_directory);
 % delayTR: TR = (gz_ex.delay + gz_ex.riseTime + gz_ex.flatTime / 2 + TE + mr.calcDuration(gx) / 2 + delayTR) * nr_slices
 
 %% Define parameters - original multi RF settings
-load('/Users/ziwei/Documents/matlab/STA_maxwell/sim_code_MRM/experiment_results/03312024_15cm/bloch_055T_1tx_offc15.0cm_iter20_dur18.840_dr0.25cm_rf_g_dt1e-6_fixcoord.mat');
+load('.../multi_RF/figures/sim_results/phantom_055T/03312024_15cm/bloch_055T_1tx_offc15.0cm_iter20_dur18.840_dr0.25cm_rf_g_dt1e-6_fixcoord_mxyz.mat');
 % rf : Nt by 1 in [mT]
 % G  : Nt by 3 in [mT/m]
 % dt : sampling rate [s]
@@ -103,10 +96,8 @@ multirf_ex = rf * sys.gamma * 1e-3;
 %% Create an excitation RF event - multi RF
 delay_rf = size(G_check,1) * sys.gradRasterTime - length(multirf_ex) * sys.rfRasterTime;
 delay_rf = delay_rf + sys.gradRasterTime - 0e-6; % 
-%delay_rf = delay_rf - 2e-6; % 
 rf_sse2d = mr.makeArbitraryRf(multirf_ex, flip_angle * pi / 180, 'system', sys, 'delay', sys.rfDeadTime + delay_rf);
 rf_sse2d.ringdownTime = rf_sse2d.ringdownTime + 0e-6;
-%rf_sse2d.ringdownTime = rf_sse2d.ringdownTime + 2e-6;
 
 %% Create spiral (readout + rewinder) gradient events ([PE,RO,SL] = [y,x,z] in Pulseq)
 %--------------------------------------------------------------------------

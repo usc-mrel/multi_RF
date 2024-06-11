@@ -10,13 +10,13 @@ clear all;
 clc;
 
 %% Add paths
-addpath(genpath('/Users/ziwei/Documents/matlab/multi_RF/third_party/reVERSE-GIRF/original_source'));
-addpath('/Users/ziwei/Documents/matlab/multi_RF/third_party/lsqrSOL');
-addpath(genpath('/Users/ziwei/Documents/matlab/multi_RF/sim/funcs'));
-addpath(genpath('/Users/ziwei/Documents/matlab/multi_RF/third_party/reVERSE-GIRF'));
-addpath(genpath('/Users/ziwei/Documents/matlab/multi_RF/thirdparty'));
-addpath('/Users/ziwei/Documents/matlab/multi_RF');
-addpath(genpath('/Users/ziwei/Documents/matlab/multi_RF/third_party/Bloch_simulator'));
+addpath(genpath('.../multi_RF/third_party/reVERSE-GIRF/original_source'));
+addpath('.../multi_RF/third_party/lsqrSOL');
+addpath(genpath('.../multi_RF/sim/funcs'));
+addpath(genpath('.../multi_RF/third_party/reVERSE-GIRF'));
+addpath(genpath('.../multi_RF/thirdparty'));
+addpath('.../multi_RF');
+addpath(genpath('.../multi_RF/third_party/Bloch_simulator'));
 
 %% Constant definitions
 gamma_uT = 267.5221;       % [rad/sec/uT]
@@ -32,8 +32,6 @@ t          = [0:dt:T-dt]';  % seconds, time vector
 dr         = 0.25;          % resolution of trajectory [cm]
 kmax       = 1/2/dr;        % [cycles/cm], max radius in k-space
 fov        = 12.8;          % XFOV of unaliased excitation [cm] 12.8 in the simulation
-
-r0         = [0 0].';       % offset [m]
 
 % spiral waveforms 
 N = kmax/(1/fov);           % number of turns, no acceleration
@@ -57,24 +55,23 @@ K = k;
 % dicom_path = '/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F5_64';
 
 % 0mm isocenter
-load /Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F0_64/fieldmap_b0_fov220mm_matrix64_02282024.mat
-dicom_path = '/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F0_64';
+load('.../multi_RF/b0b1_map_055T/F0_64/fieldmap_b0_fov220mm_matrix64_02282024.mat');
+dicom_path = '.../multi_RF/b0b1_map_055T/F0_64';
 
 cd(dicom_path);
 dicom_file = dir([dicom_path, '/*.IMA']);
 b1_mag = double(dicomread(dicom_file.name))/10/79.99; % unitless scale 
 % figure; imshow(b1_mag, []); colorbar; colormap gray;
 
-% load('/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F15_64/mask_F15.mat'); % off isocenter 15cm
-% load('/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F10_64/mask_F10.mat'); % off isocenter 10cm
-% load('/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F5_64/mask_F5.mat');  % off isocenter  5cm
-load('/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F0_64/mask_F0.mat');
-% downsample the mask 
-m = imresize(m,[64,64], Method='nearest');
+% load('.../multi_RF/b0b1_map_055T/F15_64/mask_F15.mat'); % off isocenter 15cm
+% load('.../multi_RF/b0b1_map_055T/F10_64/mask_F10.mat'); % off isocenter 10cm
+% load('.../multi_RF/b0b1_map_055T/F5_64/mask_F5.mat');  % off isocenter  5cm
+load('.../multi_RF/b0b1_map_055T/F0_64/mask_F0.mat');
+m = imresize(m,[64,64], Method='nearest'); % downsample the mask - only for F0 
 
 % generate X Y and Z
 pixel_spacing = 3.4375e-3; % [m]
-FOV = 220e-3;             % [m]
+FOV = 220e-3;              % [m]
 base_resolution = FOV/pixel_spacing;
 
 x  = linspace(-FOV/2, FOV/2, base_resolution); 
@@ -86,13 +83,13 @@ Z = zeros(size(X));
 
 %% field map
 % 15mm 
-% load /Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F15_64/fieldmap_b0_fov220mm_matrix64_off_15cm_03312024.mat
+% load .../multi_RF/b0b1_map_055T/F15_64/fieldmap_b0_fov220mm_matrix64_off_15cm_03312024.mat
 % 10mm
-% load /Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F10_64/fieldmap_b0_fov220mm_matrix64_off_10cm_03302024.mat
+% load .../multi_RF/b0b1_map_055T/F10_64/fieldmap_b0_fov220mm_matrix64_off_10cm_03302024.mat
 % 5mm
-% load /Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F5_64/fieldmap_b0_fov220mm_matrix64_off_5cm_03312024.mat
+% load .../multi_RF/b0b1_map_055T/F5_64/fieldmap_b0_fov220mm_matrix64_off_5cm_03312024.mat
 % 0mm
-load /Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F0_64/fieldmap_b0_fov220mm_matrix64_02282024.mat
+load('.../multi_RF/b0b1_map_055T/F0_64/fieldmap_b0_fov220mm_matrix64_02282024.mat');
 
 b0 = fieldmap .* m ./ (gamma_uT / (2*pi)); % [uT] 
 
@@ -132,7 +129,7 @@ P  = P_ * flip * 1j; % desired excitation pattern
 
 %% apply GIRF at 0.55T
 figure_out_transformation_matrix;
-tRR  = 1;     % [-2:0.01:2] only second echo
+tRR  = 1;  
 sR.R = R_gcs2dcs;
 sR.T = 0.55;  % [T]
 gcor = @(x)(apply_GIRF_tx(permute(x, [1 3 2]), dt, sR, tRR));
@@ -141,7 +138,7 @@ gcor = @(x)(apply_GIRF_tx(permute(x, [1 3 2]), dt, sR, tRR));
 % Set default options
 concomitant_correct = 1; % switch between original and proposed methods
 opt        = reVERSE_init_test;
-opt.dt     = dt;            % sampling dwell time [usec]
+opt.dt     = dt;         % sampling dwell time [usec]
 opt.lambda = 1;
 opt.Nstop  = 20;
 opt.show   = 1;
@@ -157,9 +154,9 @@ T2 = 1e6; % T2 relaxation time [sec]
 
 mxyz_offcenter = zeros(N1, N2, 3, nr_B0, 'double');
 
-for ii = 1 % : nr_B0
+for ii = 1 : nr_B0
     
-    B0 = B0_list(1);   % main magnetic strength [T]
+    B0 = B0_list(ii);   % main magnetic strength [T]
     
     % Set up function for system matrix
     if concomitant_correct
@@ -224,10 +221,10 @@ for ii = 1 % : nr_B0
         fprintf('done! (%5.4f sec)\n', toc(start_time));
     end
 
-        cur_dir = pwd;  
-        % cd('/Users/ziwei/Documents/matlab/STA_maxwell/sim_code_MRM/experiment_results/03312024_0cm/');
-        % save(sprintf('bloch_055T_1tx_offc%.1fcm_iter%d_dur%.3f_dr%.2fcm_rf_g_dt1e-6_fixcoord_mxyz.mat', zoff*1e2, opt.Nstop, duration, dr), 'rf', 'G', 'dt', 'mxyz_offcenter');
-        cd(cur_dir);
+    % save the results
+    cur_dir = pwd;  
+    % save(sprintf('bloch_055T_1tx_offc%.1fcm_iter%d_dur%.3f_dr%.2fcm_rf_g_dt1e-6_fixcoord_mxyz.mat', zoff*1e2, opt.Nstop, duration, dr), 'rf', 'G', 'dt', 'mxyz_offcenter');
+    cd(cur_dir);
         
     % clear mx my mz rf_combined Gedd bb Gv rf G 
     

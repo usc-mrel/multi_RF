@@ -12,7 +12,7 @@ clc;
 
 %% load exciatation patterns for reVERSE method
 reverse_girf = zeros(80,80,3,7);
-tmp = dir('/Users/ziwei/Documents/matlab/STA_maxwell/sim_code_MRM/sim_results/distance/bloch_B00.55_offc*.mat');
+tmp = dir('.../multi_RF/figures/sim_results/distance/bloch_B00.55_offc*.mat');
 for i = 1:length(tmp)
     load(tmp(i).name);
     reverse_girf(:,:,:,i) = mxyz_offcenter;
@@ -20,14 +20,14 @@ end
 
 % load proposed method results
 reverse_max = zeros(80,80,3,7);
-tmp = dir('/Users/ziwei/Documents/matlab/STA_maxwell/sim_code_MRM/sim_results/distance/blochmex_B00.55_offc*.mat');
+tmp = dir('.../multi_RF/figures/sim_results/distance/blochmex_B00.55_offc*.mat');
 for i = 1:length(tmp)
     load(tmp(i).name);
     reverse_max(:,:,:,i) = mxyz_offcenter;
 end
 
 %% parameters 
-load /Users/ziwei/Documents/matlab/STA_maxwell/spiral2d_rf_pulse_design/phase_relaxed_CPMG_excitation/b0_b1_maps_2d.mat;
+load('.../multi_RF/third_party/phase_relaxed_CPMG_excitation/b0_b1_maps_2d.mat');
 
 [N1,N2,Nc] = size(tx);
 
@@ -45,58 +45,6 @@ P_   = imfilter(P,h);
 
 flip = 90;                 % total flip angle [degrees]
 flip = flip * pi / 180;
-
-%% B0 dependence figure
-% zoff = 10cm
-% mxy_reverse  = squeeze(complex(reverse_girf(:,:,1,:), reverse_girf(:,:,2,:)));
-% mxy_maxverse = squeeze(complex(reverse_max(:,:,1,:), reverse_max(:,:,2,:)));
-% 
-% block = 1.01 * complex(ones(N1,1, 'double'), ones(N1,1, 'double'));
-% im_montage = cat(1, imag(cat(2, 1j*P_.', block, mxy_reverse(:,:,1).', block, mxy_reverse(:,:,2).', block, mxy_reverse(:,:,3).')), ...
-%                     1.01 * ones(1, (N2+1)*4-1, 'double'), ...
-%                     real(cat(2, 1j*P_.', block, mxy_reverse(:,:,1).', block, mxy_reverse(:,:,2).', block, mxy_reverse(:,:,3).')), ...
-%                     1.01 * ones(1, (N2+1)*4-1, 'double'), ...
-%                     imag(cat(2, 1j*P_.', block, mxy_maxverse(:,:,1).', block, mxy_maxverse(:,:,2).', block, mxy_maxverse(:,:,3).')), ...
-%                     1.01 * ones(1, (N2+1)*4-1, 'double'), ...
-%                     real(cat(2, 1j*P_.', block, mxy_maxverse(:,:,1).', block, mxy_maxverse(:,:,2).', block, mxy_maxverse(:,:,3).')));
-% 
-% FontSize = 18;
-% cmap = cat(1, jet(256), [1 1 1]);                
-% figure('Color', 'w', 'Position', [-1 2 1101 814]);
-% imagesc(abs(im_montage)*flip*180/pi); axis image off; colormap(gca, cmap); 
-% hc = colorbar;
-% 
-% set(hc,'FontSize', FontSize);
-% ylabel(hc, 'Flip angle [degree]');
-% 
-% text((N2+1)*2 , -15, 'B0 = 0.55T z = 10mm', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize+2, 'FontWeight','bold');
-% 
-% text(N2/2         , 0, 'Target', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
-% text(N2/2         , 0, sprintf('re-VERSE'), 'Color', 'yellow', 'VerticalAlignment', 'top', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
-% text(N2/2+(N2+1)  , 0, {sprintf('X%g', 4)}, 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
-% text(N2/2+(N2+1)*2, 0, {sprintf('X%g', 2)},  'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
-% text(N2/2+(N2+1)*3, 0, {sprintf('X%g', 1)},    'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
-% 
-% text(N2/2, (N1+1)*2, sprintf('Proposed'), 'Color', 'yellow', 'VerticalAlignment', 'top', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
-% text(-3, N2/2          , 'Imaginary', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize, 'rotation', 90);
-% text(-3, N2/2+N2+1    ,  'Real'     , 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize, 'rotation', 90);
-% text(-3, N2/2+(N2+1)*2,  'Imaginary', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize, 'rotation', 90);
-% text(-3, N2/2+(N2+1)*3,  'Real'     , 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize, 'rotation', 90);
-% 
-% % Draw arrows
-% cx = floor(N1/2) + 1;
-% cy = floor(N2/2) + 1;
-% %arrow([cx cy], [cx+20 cy], 'Color', 'w', 'Length', 7, 'TipAngle', 25, 'Width', 1);
-% %arrow([cx cy], [cx cy-20], 'Color', 'w', 'Length', 7, 'TipAngle', 25, 'Width', 1);
-% text(cx+20, cy+1 , '$\bf{x}$', 'Color', 'w', 'Interpreter', 'latex', 'FontSize', FontSize, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'top');
-% text(cx+5 , cy-16, '$\bf{y}$', 'Color', 'w', 'Interpreter', 'latex', 'FontSize', FontSize, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
-% 
-% cx = floor(N1/2) + 1;
-% cy = floor(N2/2) + 1;
-% %arrow([cx cy+(N1+1)*2], [cx+20 cy+(N1+1)*2], 'Color', 'w', 'Length', 7, 'TipAngle', 25, 'Width', 1);
-% %arrow([cx cy+(N1+1)*2], [cx cy-20+(N1+1)*2], 'Color', 'w', 'Length', 7, 'TipAngle', 25, 'Width', 1);
-% text(cx+20, cy+1+(N1+1)*2 , '$\bf{x}$', 'Color', 'w', 'Interpreter', 'latex', 'FontSize', FontSize, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'top');
-% text(cx+5 , cy-16+(N1+1)*2, '$\bf{y}$', 'Color', 'w', 'Interpreter', 'latex', 'FontSize', FontSize, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
 
 %% off-isocenter figure
 mxy_reverse  = complex(reverse_girf(:,:,1,:), reverse_girf(:,:,2,:));
@@ -118,10 +66,9 @@ imagesc(abs(im_montage)); axis image off; colormap(gca, cmap);
 hc = colorbar;
 
 set(hc,'FontSize', FontSize);
-ylabel(hc, 'Scaled Magnetization [%]'); % ^\circ
+ylabel(hc, 'Scaled Magnetization [%]');
 
 text(N2/2+(N2+1)*3  , -10, 'B_0 = 0.55T', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize+2, 'FontWeight','bold');
-% text(N2/2         , 0, sprintf('re-VERSE'), 'Color', 'yellow', 'VerticalAlignment', 'top', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
 text(N2/2         , 0, {sprintf('z = %dcm', 0)},  'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
 text(N2/2+(N2+1)  , 0, {sprintf('z = %dcm', 5)}, 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
 text(N2/2+(N2+1)*2, 0, {sprintf('z = %dcm', 10)}, 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
@@ -129,12 +76,6 @@ text(N2/2+(N2+1)*3, 0, {sprintf('z = %dcm', 15)}, 'VerticalAlignment', 'bottom',
 text(N2/2+(N2+1)*4, 0, {sprintf('z = %dcm', 20)}, 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
 text(N2/2+(N2+1)*5, 0, {sprintf('z = %dcm', 25)}, 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
 text(N2/2+(N2+1)*6, 0, {sprintf('z = %dcm', 30)}, 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
-
-% text(N2/2, (N1+1)*2, sprintf('Proposed'), 'Color', 'yellow', 'VerticalAlignment', 'top', 'HorizontalAlignment', 'center', 'FontSize', FontSize);
-% text(-3, N2/2          , 'Imaginary', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize, 'rotation', 90);
-% text(-3, N2/2+N2+1    ,  'Real'     , 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize, 'rotation', 90);
-% text(-3, N2/2+(N2+1)*2,  'Imaginary', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize, 'rotation', 90);
-% text(-3, N2/2+(N2+1)*3,  'Real'     , 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', FontSize, 'rotation', 90);
 
 %% NRMSE 
 % re-verse method 

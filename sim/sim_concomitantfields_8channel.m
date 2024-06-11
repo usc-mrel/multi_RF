@@ -1,5 +1,6 @@
 %% Simulation of concomitant fields using Bloch Siegert shift
 %%% proposed correction method for 2D spiral with measured GIRFs
+% Ziwei Zhao 
 
 %% Clean slate
 close all; 
@@ -7,11 +8,11 @@ clear all;
 clc;
 
 %% Add paths
-addpath(genpath('/Users/ziwei/Documents/matlab/multi_RF/third_party/reVERSE-GIRF/original_source'));
-addpath('/Users/ziwei/Documents/matlab/multi_RF/third_party/lsqrSOL');
-addpath(genpath('/Users/ziwei/Documents/matlab/multi_RF/third_party/reVERSE-GIRF'));
-addpath(genpath('/Users/ziwei/Documents/matlab/multi_RF/thirdparty'));
-addpath(genpath('/Users/ziwei/Documents/matlab/multi_RF/third_party/Bloch_simulator'));
+addpath(genpath('.../multi_RF/third_party/reVERSE-GIRF/original_source'));
+addpath('.../multi_RF/third_party/lsqrSOL');
+addpath(genpath('.../multi_RF/third_party/reVERSE-GIRF'));
+addpath(genpath('.../multi_RF/thirdparty'));
+addpath(genpath('.../multi_RF/third_party/Bloch_simulator'));
 
 %% Constant definitions
 gamma_uT = 267.5221;       % [rad/sec/uT]
@@ -21,8 +22,6 @@ flip = 90;                 % total flip angle [degrees]
 flip = flip * pi / 180;
 
 %% Design initial spiral trajectory
-% K_traj = dir('/Users/ziwei/Documents/matlab/STA_maxwell/K_*.mat');
-% ace    = [2 1 0.5 0.25];
 T          = 26e-3;         % pulse duration [sec]
 dt         = 6.4e-6;        % RF/gradient raster time [sec]
 t          = [0:dt:T-dt]';  % seconds, time vector
@@ -45,7 +44,7 @@ figure; plot(t, k(:,1)); hold on; plot(t, k(:,2));
 K = k;
 
 %% Load in B0 & B1 field maps + FOV info (example data from 7T 8ch head coil)
-load /Users/ziwei/Documents/matlab/multi_RF/third_party/phase_relaxed_CPMG_excitation/b0_b1_maps_2d.mat;
+load('.../multi_RF/third_party/phase_relaxed_CPMG_excitation/b0_b1_maps_2d.mat');
 % b0   : B0 map [uT], 64 x 64 (double)
 % tx   : relative transmit sensitivity map, 64 x 64 x 8 (double, complex) 8 channels 
 % X,Y,Z: spatial coordinates [m], 64 x 64 (double)
@@ -62,7 +61,7 @@ idx = find(m); % index of non-masked voxels
 
 %% Define a square target
 % Offsets [m]
-xoff = +6e-3;  % [mm] -> [m] too minimum 
+xoff = +6e-3;  % [mm] -> [m]
 yoff = 0e-3;   % [mm] -> [m]
 
 r0   = 15e-3;  % [mm] -> [m]
@@ -79,14 +78,14 @@ P_ = imfilter(P, h);
 P  = P_ * flip * 1j; % desired excitation pattern
 
 %% Define gradient correction model (GIRF)
-girf = load('/Users/ziwei/Documents/matlab/multi_RF/third_party/reVERSE-GIRF/GIRF_3T_London_20140729.mat');
+girf = load('.../multi_RF/third_party/reVERSE-GIRF/GIRF_3T_London_20140729.mat');
 
 % This correction gives G and k after convolution with GIRF
 gcor = @(x)(gradient_distort_GIRF(x, girf.ff, girf.Hw, dt, 10));
 
 %% Example design: Include GIRF
 % Set default options
-concomitant_correct = 0; % switch between original and proposed methods
+concomitant_correct = 0;    % switch between original and proposed methods
 opt        = reVERSE_init;
 dt         = opt.dt;        % sampling dwell time [usec]
 opt.lambda = 1;
@@ -99,14 +98,14 @@ nr_B0     = length(B0_list);
 alpha = 0.5;
 g     = 0;
 
-T1 = 1e6; % 493e-3; % 1e6; % T1 relaxation time [sec]
+T1 = 1e6; % T1 relaxation time [sec]
 T2 = 1e6; % T2 relaxation time [sec]
 
 mxyz_offcenter = zeros(N1, N2, 3, nr_B0, 'double');
 
-for ii = 1 % : nr_B0
+for ii = 1 : nr_B0
     
-    B0 = B0_list(1);   % main magnetic strength [T]
+    B0 = B0_list(ii);   % main magnetic strength [T]
 
     % Set up function for system matrix
     if concomitant_correct
@@ -159,7 +158,8 @@ for ii = 1 % : nr_B0
         mxyz_offcenter(idx1, idx2, :, ii) = cat(3, mx, my, mz);
         fprintf('done! (%5.4f sec)\n', toc(start_time));
     end
-
+    
+      % save the results
       cur_dir = pwd;    
       save(sprintf('bloch_B0%.2f_offc%.1fcm_iter%d_dur%.3f_dr%.2fcm_lambda%1.0f.mat', B0, zoff*1e2, opt.Nstop, duration, dr, opt.lambda), 'mxyz_offcenter');
       cd(cur_dir);

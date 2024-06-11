@@ -29,7 +29,7 @@ if field_T == 1.4940
     girf_file = 'GIRF_20160501.mat';
 elseif field_T == 0.55
     % 0.55T Aera (NHLBI 2018)
-    girf_file = '/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/GIRF_20200221_Duyn_method_coil2.mat';
+    girf_file = '.../multi_RF/b0b1_map_055T/GIRF_20200221_Duyn_method_coil2.mat';
     % girf_file = ones(3800,3);
 end
 
@@ -74,33 +74,10 @@ if samples*dt > dtGIRF*l_GIRF
     GIRF = new_GIRF;
     l_GIRF = length(GIRF);
 
-    %     new_GIRF = zeros(round((samples*dt) / (dtGIRF)),3);
-    %
-    %     for i = 1:3
-    %         fft_GIRF = (ifft((GIRF(:,i) ))); % figure, plot(abs(fft_GIRF))
-    %
-    %         temp = zeros(length(new_GIRF),1);
-    % %         H_size = 2000;        H = hanningt(H_size); %figure, plot(H)
-    % %         fft_GIRF(end-(H_size/2 - 1):end) = fft_GIRF(end-(H_size/2 - 1):end).*reshape(H((H_size/2 + 1):H_size),size(fft_GIRF(end-(H_size/2 - 1):end)) );
-    % %
-    %         temp(1:length(fft_GIRF)) = fft_GIRF; % hold on, plot(abs(temp))
-    %
-    %         new_GIRF(:,i) = (fft((temp)));
-    %     end
 end
-% %%
-%     figure,
-%     subplot(2,2,1), plot(abs(GIRF)), title('mag G')
-%     subplot(2,2,2), plot(abs(new_GIRF)),title('mag G''')
-%     subplot(2,2,3), plot(angle(GIRF)), title('angle G')
-%     subplot(2,2,4), plot(angle(new_GIRF)),title('angle G''')
 
-%%   GIRF prediction   %
+%%   GIRF prediction  
 %%%%%%%%%%%%%%%%%%%%%%%
-% tRR = -0.7;
-% tRR = 0;
-% tRR = tRR + .1746;
-% tRR = tRR + .3492;
 if nargin < 4
     tRR = 0;
 end
@@ -136,22 +113,6 @@ for l = 1:interleaves
 
         % REQUIRES SOME INTELLIGENCE TO DETERMINE WHICH SPIRAL FORM
 
-        %------------------------------------------------------------------
-        % Modified by NGL -- start
-        %------------------------------------------------------------------
-        % Original code:
-        % SPIRAL OUT
-        % G(1:length(G0)) = G0(:,ax); % figure, plot(G)
-        % Make waveform periodic by returning to zero
-        %          H = G(end)*hanningt((200)*2); % figure, plot(H)
-        %          G((length(G0)+1):(length(G0)+length(H))) = H;
-        % H = G(length(G0))*hanningt((200)*2); % figure, plot(H)
-        % G((length(G0)+1):(length(G0)+0.5*length(H))) = H(length(H)*0.5 + 1:end); % figure, plot(G)
-        %
-        % RR shift to middle to avoid offset?
-        % G = circshift(G,round(L/2 - samples/2)); % figure, plot(G)
-        %------------------------------------------------------------------
-        % SPIRAL OUT
         N = length(G0);
         index_range = (-floor(N/2):ceil(N/2)-1).' + floor(L/2) + 1;
         G(index_range) = G0(:,ax);
@@ -159,18 +120,9 @@ for l = 1:interleaves
         % Make a waveform periodic by returning to zero
         H = G(index_range(N)) * hanningt(400);
         G(index_range(N)+(1:length(H)*0.5)) = H(length(H)*0.5+1:end);
-        %------------------------------------------------------------------
-        % Modified by NGL -- end
-        %------------------------------------------------------------------
-
-        % SPIRAL IN-OUT
-        %          G((1:length(G0))) = G0(:,ax); % pad first point to 0
-
         %FFT nominal gradient
         dw = 1 / (L * dtSim); % frequency resolution [Hz]
-        %w = 0:dw:dw*(length(G)-1); % Modified by NGL
         w = (-floor(L/2):ceil(L/2)-1).' * dw; % [Hz]
-        %I = fftshift(fft(fftshift(G))); % Modified by NGL
         I = fftshift(fft(ifftshift(G)));
 
         %Zeropad GIRF and I to bandwidth of sampling (when waveform not at GRT)
@@ -184,23 +136,12 @@ for l = 1:interleaves
             GIRF1(1) = 0; GIRF1(end) = 0;
             GIRF1(2:round(length(temp)/2) + 1) = GIRF1(2:round(length(temp)/2)+1).*reshape(temp(1:round(length(temp)/2)),size(GIRF1(2:round(length(temp)/2)+1)));
             GIRF1(end-round(length(temp)/2):end-1) = GIRF1(end-round(length(temp)/2):end-1).*reshape(temp((round(length(temp)/2) + 1):length(temp)),size(GIRF1(end-round(length(temp)/2):end-1)));
-            %             figure, plot(real(GIRF1))
         else
-            %--------------------------------------------------------------
-            % Modified by NGL
-            % Usual operation.. (ACW)
-            %zeropad = round(abs((l_GIRF-L)/2)); %amount of zeropadding
-            %GIRF1((1+zeropad):(zeropad+l_GIRF))= GIRF(:,ax);
-            %--------------------------------------------------------------
             index_range = (-floor(l_GIRF/2):ceil(l_GIRF/2)-1).' + floor(L/2) + 1;
             GIRF1(index_range) = GIRF(:,ax);
         end
 
         % Predict Gradient and apply clock shift
-        %------------------------------------------------------------------
-        % Modified by NGL
-        %------------------------------------------------------------------
-        % P = I.*GIRF1.*exp(-1i.*ADCshift*2*pi*w)'; % P = I.*GIRF1.*exp(1i.*ADCshift*2*pi*w)';
         P = I .* GIRF1 .* exp(1j * ADCshift * 2 * pi * w);
 
         % zeropad to required bandwidth (when waveform is at GRT)
@@ -214,11 +155,6 @@ for l = 1:interleaves
         PredGrad((1+zeropad):(zeropad+length(P)))= P;
         NomGrad((1+zeropad):(zeropad+length(I)))= I;
 
-        %------------------------------------------------------------------
-        % Modified by NGL
-        % PredGrad = ifftshift(ifft(ifftshift(PredGrad)));
-        % NomGrad  = ifftshift(ifft(ifftshift(NomGrad)));
-        %------------------------------------------------------------------
         % FFT back to time domain
         PredGrad = fftshift(ifft(ifftshift(PredGrad))) * L / length(G);
         NomGrad  = fftshift(ifft(ifftshift(NomGrad)))  * L / length(G);
@@ -240,16 +176,6 @@ for l = 1:interleaves
         end
         NomGrad = abs(NomGrad).*multiplier;
 
-        %------------------------------------------------------------------
-        % Modified by NGL
-        % RR - circle back
-        %NomGrad = circshift(NomGrad, -round(L/2 - samples/2) -1);
-        %PredGrad = circshift(PredGrad, -round(L/2 - samples/2) -1);
-        %
-        %Only take the samples relevant to the readout
-        %Nominal(:,ax) = NomGrad(1:samples);
-        %Predicted(:,ax) = PredGrad(1:samples);
-        %------------------------------------------------------------------
         index_range = (-floor(samples/2):ceil(samples/2)-1).' + floor(L/2) + 1;
         Nominal(:,ax) = NomGrad(index_range);
         Predicted(:,ax) = PredGrad(index_range);
@@ -264,43 +190,11 @@ for l = 1:interleaves
     kPred(:,:,l) = cumsum(GPred(:,:,l));
 end
 
-% Scale k-space in units of 1/cm
-% gamma = 2.67522212e+8; % gyromagnetic ratio for 1H [rad/sec/T]
-% Modified by NGL: 2.675e8 => gamma
-% kPred = 0.01*(gamma/(2*pi))*(kPred*0.01)*dt; % (kPred*0.01):: assuming gradients in are in G/cm!!!
-% kNom  = 0.01*(gamma/(2*pi))*(kNom*0.01)*dt; % (kPred*0.01):: assuming gradients in are in G/cm!!!
-
 % add ktx_pred
 gamma_mT = 2*pi*42577.46778; % rad s^-1 mT^-1 [rad/mT]
 M = length(GPred);
 t = (0:M-1)*dt;
 kPred_tx = -gamma_mT*flipud(cumtrapz(t,flipud(GPred))); % rad/mT * mT/m = rad/m
-
-% Permute
-% kPred = permute(kPred,[1 3 2]);
-% kNom  = permute(kNom,[1 3 2]);
-% GPred = permute(GPred,[1 3 2]);
-% GNom  = permute(GNom,[1 3 2]);
-
-% figure,
-% subplot(2,2,1); plot(kNom(:,:,1),kPred(:,:,1),'-')
-% subplot(2,2,2); plot(kNom(:,:,2),kPred(:,:,2),'-')
-% subplot(2,2,3); plot(GNom(:,:,1),GPred(:,:,1),'-')
-% subplot(2,2,4); plot(GNom(:,:,2),GPred(:,:,2),'-')
-
-%%%%%%%%%%%%%%%%%
-%%  calculate gridder
-%%%%%%%%%%%%%%%%%
-%
-% omega = kPred(:,:,1:2)*(pi/max(max(max(kPred))));
-% omega = reshape(omega,interleaves*samples,2);
-%
-% gradients_nominal = reshape(GPred(:,:,1:2),interleaves*samples,2);
-% grad = complex(gradients_nominal(:,1),gradients_nominal(:,2));
-% kk = complex(omega(:,1),omega(:,2));
-% weights = abs(grad(:)) .* abs(sin(angle(grad(:))-angle(kk(:))))*10; %Estimating weights from Meyer et al. Magn Reson Med. 1992 Dec;28(2):202-13.
-%
-% st = nufft_init(omega, matrix_size, [6 6],matrix_size.*2, matrix_size./2);
 
 
 end

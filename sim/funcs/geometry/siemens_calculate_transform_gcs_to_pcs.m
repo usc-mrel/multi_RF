@@ -52,13 +52,6 @@ switch main_orientation
                read_sign = -1;
                phase_sign = -1;
             end
-            %--------------------------------------------------------------
-            % Need more data to confirm this!
-            % Previous code
-            % else % -180 <= angle < -45 or 45 < angle <= 180
-            %    read_sign = -1;
-            %    phase_sign = -1;
-            %--------------------------------------------------------------
     case TRANSVERSE % =2
         if dRotAngle >= 0
             if (dRotAngle <= pi/4) % 0 <= angle <= 45

@@ -1,7 +1,5 @@
 % input_pulseq_cartesian_spin_echo_multislice_protocol1.m
-% Written by Nam Gyun Lee
-% Email: namgyunl@usc.edu, ggang56@gmail.com (preferred)
-% Started: 02/05/2023, Last modified: 09/18/2023
+% Written by Nam Gyun Lee; Modified by Ziwei Zhao
 
 %% Contrast
 %--------------------------------------------------------------------------

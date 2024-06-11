@@ -10,11 +10,11 @@ clear all;
 close all;
 clc;
 
-addpath(genpath('/Users/ziwei/Documents/matlab/STA_maxwell/thirdparty'));
+addpath(genpath('.../multi_RF/third_party/'));
 
 %% load exciatation patterns for reVERSE method
 reverse_girf = zeros(80,80,3,5);
-tmp = dir('/Users/ziwei/Documents/matlab/multi_RF/figures/sim_results/field_strength/bloch_B0*.mat');
+tmp = dir('.../multi_RF/figures/sim_results/field_strength/bloch_B0*.mat');
 for i = 1:length(tmp)
     load(tmp(i).name);
     reverse_girf(:,:,:,i) = mxyz_offcenter;
@@ -22,14 +22,14 @@ end
 
 % load proposed method results
 reverse_max = zeros(80,80,3,5);
-tmp = dir('/Users/ziwei/Documents/matlab/multi_RF/figures/sim_results/field_strength/blochmex_B0*.mat');
+tmp = dir('.../multi_RF/figures/sim_results/field_strength/blochmex_B0*.mat');
 for i = 1:length(tmp)
     load(tmp(i).name);
     reverse_max(:,:,:,i) = mxyz_offcenter;
 end
 
 %% parameters 
-load /Users/ziwei/Documents/matlab/multi_RF/third_party/phase_relaxed_CPMG_excitation/b0_b1_maps_2d.mat;
+load('.../multi_RF/third_party/phase_relaxed_CPMG_excitation/b0_b1_maps_2d.mat');
 
 [N1,N2,Nc] = size(tx);
 
