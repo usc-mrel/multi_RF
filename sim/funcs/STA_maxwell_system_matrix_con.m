@@ -83,7 +83,7 @@ switch ndims(Tx)
 
         % 24-11-10: edit this, z dim removed for 3d shim
         if (Ny/Nx)>1.5
-            No=Nz;Nz=1;
+            No=Nz; Nz=1;
         end
         else
             [Nx Ny No Nc] = size(Tx);

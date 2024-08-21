@@ -5,18 +5,17 @@
 % Ziwei Zhao
 
 %% Clean slate
-close all; 
-clear all;
-clc;
+% close all; 
+% clear all;
+% clc;
 
-%% Add paths
-addpath(genpath('.../multi_RF/third_party/reVERSE-GIRF/original_source'));
-addpath('.../multi_RF/third_party/lsqrSOL');
-addpath(genpath('.../multi_RF/sim/funcs'));
-addpath(genpath('.../multi_RF/third_party/reVERSE-GIRF'));
-addpath(genpath('.../multi_RF/thirdparty'));
-addpath('.../multi_RF');
-addpath(genpath('.../multi_RF/third_party/Bloch_simulator'));
+%% Setup paths
+% setup_path;
+
+%% field strengths and off-isocenter variables to change
+% zoff = 00e-2;        % [m]
+% concomitant_correct = 1;  % switch between original and proposed methods
+% output_path = pwd; % sanity check
 
 %% Constant definitions
 gamma_uT = 267.5221;       % [rad/sec/uT]
@@ -55,19 +54,18 @@ K = k;
 % dicom_path = '/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F5_64';
 
 % 0mm isocenter
-load('.../multi_RF/b0b1_map_055T/F0_64/fieldmap_b0_fov220mm_matrix64_02282024.mat');
-dicom_path = '.../multi_RF/b0b1_map_055T/F0_64';
+% load('/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F0_64/fieldmap_b0_fov220mm_matrix64_02282024.mat');
+% dicom_path = '/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F0_64';
 
 cd(dicom_path);
 dicom_file = dir([dicom_path, '/*.IMA']);
 b1_mag = double(dicomread(dicom_file.name))/10/79.99; % unitless scale 
-% figure; imshow(b1_mag, []); colorbar; colormap gray;
 
 % load('.../multi_RF/b0b1_map_055T/F15_64/mask_F15.mat'); % off isocenter 15cm
 % load('.../multi_RF/b0b1_map_055T/F10_64/mask_F10.mat'); % off isocenter 10cm
 % load('.../multi_RF/b0b1_map_055T/F5_64/mask_F5.mat');  % off isocenter  5cm
-load('.../multi_RF/b0b1_map_055T/F0_64/mask_F0.mat');
-m = imresize(m,[64,64], Method='nearest'); % downsample the mask - only for F0 
+% load('/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F0_64/mask_F0.mat');
+% m = imresize(m,[64,64], Method='nearest'); % downsample the mask - only for F0 
 
 % generate X Y and Z
 pixel_spacing = 3.4375e-3; % [m]
@@ -89,7 +87,7 @@ Z = zeros(size(X));
 % 5mm
 % load .../multi_RF/b0b1_map_055T/F5_64/fieldmap_b0_fov220mm_matrix64_off_5cm_03312024.mat
 % 0mm
-load('.../multi_RF/b0b1_map_055T/F0_64/fieldmap_b0_fov220mm_matrix64_02282024.mat');
+% load('/Users/ziwei/Documents/matlab/multi_RF/b0b1_map_055T/F0_64/fieldmap_b0_fov220mm_matrix64_02282024.mat');
 
 b0 = fieldmap .* m ./ (gamma_uT / (2*pi)); % [uT] 
 
@@ -97,7 +95,6 @@ b0 = fieldmap .* m ./ (gamma_uT / (2*pi)); % [uT]
 FOVx = max(X(:)) - min(X(:)); % [m]
 FOVy = max(Y(:)) - min(Y(:)); % [m]
 Z = Z * 0;
-zoff = 0e-2;                  % [m] % please change the off-isocenter zoff to match specific displacement
 
 %% replace b1 mag
 tx_phase = zeros(base_resolution);
@@ -132,19 +129,21 @@ figure_out_transformation_matrix;
 tRR  = 1;  
 sR.R = R_gcs2dcs;
 sR.T = 0.55;  % [T]
-gcor = @(x)(apply_GIRF_tx(permute(x, [1 3 2]), dt, sR, tRR));
+gcor = @(x)(apply_GIRF_tx(permute(x, [1 3 2]), dt, sR, tRR, root_path));
 
 %% Example design: Include GIRF
 % Set default options
-concomitant_correct = 1; % switch between original and proposed methods
+if concomitant_correct 
+    script_name = 'blochmex'; 
+else   
+    script_name = 'bloch'; 
+end
+
 opt        = reVERSE_init_test;
 opt.dt     = dt;         % sampling dwell time [usec]
 opt.lambda = 1;
 opt.Nstop  = 20;
 opt.show   = 1;
-
-B0_list   = [0.55];         % [Tesla]
-nr_B0     = length(B0_list);
 
 alpha = 0.5;
 g     = 0;
@@ -152,113 +151,87 @@ g     = 0;
 T1 = 1e6; % T1 relaxation time [sec]
 T2 = 1e6; % T2 relaxation time [sec]
 
-mxyz_offcenter = zeros(N1, N2, 3, nr_B0, 'double');
+B0 = 0.55;   % main magnetic strength [T]
 
-for ii = 1 : nr_B0
-    
-    B0 = B0_list(ii);   % main magnetic strength [T]
-    
-    % Set up function for system matrix
-    if concomitant_correct
-        afun  = @(k, G)(STA_maxwell_system_matrix_con(xlist, k, G, B0, opt.dt * (1:size(k,1)), tx, b0, m, 'loopcalc'));
-        tic;
-        [bb, Gv] = reVERSE_GIRF_con(P(idx), K, afun, gcor, opt);
-        Time_reVERSE_con = toc;
-    else
-        afun2 = @(k)(STA_system_matrix(xlist, k, opt.dt * (1:size(k,1)), tx, b0, m, 'loopcalc'));
-        tic;
-        [bb,Gv] = reVERSE_GIRF(P(idx), K, afun2, gcor, opt);
-        Time_reVERSE = toc;
-    end
-    
-    % Outputs
-    rf = bb{end};   % [mT]
-    G  = Gv{end};   % [mT/m]
+mxyz_offcenter = zeros(N1, N2, 3, 'double');
 
-    %% check slew rate and Gmax
-    % resample G based on sys.Gradrastertime
-    G_input = G(1:10:end,:)/10; 
-
-    % check Gmax and slewrate
-    G_check = (G_input(:,1) + 1i*G_input(:,2)) * 1e1; % [G/cm]
-    [ktmp,gtmp,s,m1,m2,t,v] = calcgradinfo(G_check, 1e-5);
-    max(abs(s))
-    max(G_input(:,1))
-    max(G_input(:,2))
-    
-    duration = dt*1e3*length(G);
-
-    %% Perform Bloch simulation
-    N_lambda = length(idx); % number of voxels within a mask
-
-    mx0 = zeros([N1 N2], 'double');
-    my0 = zeros([N1 N2], 'double');
-    mz0 = zeros([N1 N2], 'double');
-    mz0(idx) = 1;
-
-    [Gedd, k] = gcor(G);  % [mT/m]
-    
-%%
-    % perform bloch equations
-    start_time = tic;
-    for lambda = 1 : N_lambda
-        
-        [idx1,idx2] = ind2sub([N1 N2], idx(lambda));
-        fprintf('Performing Bloch simulation at (%3d/%3d)... ', lambda, N_lambda);
-        
-        % rf_out: [mT]   * [T/1e3mT] * [1e4G/T]             => *1e1 [G]
-        % G_out : [mT/m] * [T/1e3mT] * [1e4G/T] * [m/1e2cm] => *1e-1[G/cm]
-
-        rf_combined = sum(bsxfun(@times, rf, reshape(tx(idx1,idx2,:), [1 Nc])), 2); 
-        df = b0(idx1, idx2) * gamma_uT / (2 * pi); % [uT] * [rad/sec/uT] * [cycle/2pi rad] => [Hz]
-                
-        % off iso-center
-        dp = cat(3, X(idx1,idx2), Y(idx1,idx2), Z(idx1,idx2) + zoff) * 1e2; % [m] * [1e2cm/m] => [cm]
-        
-        [mx,my,mz] = bloch_maxwell(rf_combined*1e1, Gedd*1e-1, dt, T1, T2, df, dp, 0, B0, alpha, g, mx0(idx1,idx2), my0(idx1,idx2), mz0(idx1,idx2));
-        
-        mxyz_offcenter(idx1, idx2, :, ii) = cat(3, mx, my, mz);
-        fprintf('done! (%5.4f sec)\n', toc(start_time));
-    end
-
-    % save the results
-    cur_dir = pwd;  
-    % save(sprintf('bloch_055T_1tx_offc%.1fcm_iter%d_dur%.3f_dr%.2fcm_rf_g_dt1e-6_fixcoord_mxyz.mat', zoff*1e2, opt.Nstop, duration, dr), 'rf', 'G', 'dt', 'mxyz_offcenter');
-    cd(cur_dir);
-        
-    % clear mx my mz rf_combined Gedd bb Gv rf G 
-    
+% Set up function for system matrix
+if concomitant_correct
+    afun  = @(k, G)(STA_maxwell_system_matrix_con(xlist, k, G, B0, opt.dt * (1:size(k,1)), tx, b0, m, 'loopcalc'));
+    tic;
+    [bb, Gv] = reVERSE_GIRF_con(P(idx), K, afun, gcor, opt);
+    Time_reVERSE_con = toc;
+else
+    afun2 = @(k)(STA_system_matrix(xlist, k, opt.dt * (1:size(k,1)), tx, b0, m, 'loopcalc'));
+    tic;
+    [bb,Gv] = reVERSE_GIRF(P(idx), K, afun2, gcor, opt);
+    Time_reVERSE = toc;
 end
 
-ind_t = 0:dt:(length(G)-1)*dt;
-ind_t = ind_t * 1e3;
+% Outputs
+rf = bb{end};   % [mT]
+G  = Gv{end};   % [mT/m]
 
-figure;  plot(ind_t, abs(rf(:,1)), 'LineWidth', 2);
-ylabel('Amplitude [mT]'); xlabel('time [ms]');
-set(gca, 'FontSize', 16); title('Representive multi-channel RF @0.55T');
+%% check slew rate and Gmax
+% resample G based on sys.Gradrastertime
+G_input = G(1:10:end,:)/10; 
 
-figure; subplot(1,2,1);
-plot(ind_t, Gedd(:,1), 'LineWidth', 2);
-hold on; plot(ind_t, Gedd(:,2), 'LineWidth', 2);
-xlabel('time [ms]'); ylabel('[mT/m]');
-xlim([0 18]); box off; grid on;
-set(gca, 'FontSize', 18);
-title('Representitive Gradient waveform');
-subplot(1,2,2);
-plot(k(:,1), k(:,2), 'LineWidth', 2);
-box off; grid on;
-xlabel('time [ms]'); ylabel('[rads/m]');
-xlim([-1500 1500]); ylim([-1500 1500]);
-set(gca, 'FontSize', 18); 
-title('Corresponding k-space');
+% check Gmax and slewrate
+G_check = (G_input(:,1) + 1i*G_input(:,2)) * 1e1; % [G/cm]
+[ktmp,gtmp,s,m1,m2,t,v] = calcgradinfo(G_check, 1e-5);
+max(abs(s))
+max(G_input(:,1))
+max(G_input(:,2))
+
+duration = dt*1e3*length(G);
+
+%% Perform Bloch simulation
+N_lambda = length(idx); % number of voxels within a mask
+
+mx0 = zeros([N1 N2], 'double');
+my0 = zeros([N1 N2], 'double');
+mz0 = zeros([N1 N2], 'double');
+mz0(idx) = 1;
+
+[Gedd, k] = gcor(G);  % [mT/m]
+
+%%
+% perform bloch equations
+start_time = tic;
+for lambda = 1 : N_lambda
+    
+    [idx1,idx2] = ind2sub([N1 N2], idx(lambda));
+    fprintf('Performing Bloch simulation at (%3d/%3d)... ', lambda, N_lambda);
+    
+    % rf_out: [mT]   * [T/1e3mT] * [1e4G/T]             => *1e1 [G]
+    % G_out : [mT/m] * [T/1e3mT] * [1e4G/T] * [m/1e2cm] => *1e-1[G/cm]
+
+    rf_combined = sum(bsxfun(@times, rf, reshape(tx(idx1,idx2,:), [1 Nc])), 2); 
+    df = b0(idx1, idx2) * gamma_uT / (2 * pi); % [uT] * [rad/sec/uT] * [cycle/2pi rad] => [Hz]
+            
+    % off iso-center
+    dp = cat(3, X(idx1,idx2), Y(idx1,idx2), Z(idx1,idx2) + zoff) * 1e2; % [m] * [1e2cm/m] => [cm]
+    
+    [mx,my,mz] = bloch_maxwell(rf_combined*1e1, Gedd*1e-1, dt, T1, T2, df, dp, 0, B0, alpha, g, mx0(idx1,idx2), my0(idx1,idx2), mz0(idx1,idx2));
+    
+    mxyz_offcenter(idx1, idx2, :) = cat(3, mx, my, mz);
+    fprintf('done! (%5.4f sec)\n', toc(start_time));
+end
+
+% save the results
+cur_dir = pwd; 
+cd(output_path);
+save(sprintf('%s_055T_1tx_offc%.1fcm_iter%d_dur%.3f_dr%.2fcm_rf_g_dt1e-6_fixcoord_mxyz.mat', script_name, zoff*1e2, opt.Nstop, duration, dr), 'rf', 'G', 'dt', 'mxyz_offcenter');
+cd(cur_dir);
 
 % check NRMSE
-mxy  = squeeze(complex(mxyz_offcenter(:,:,1,:), mxyz_offcenter(:,:,2,:)));
+mxy = squeeze(complex(mxyz_offcenter(:,:,1,:), mxyz_offcenter(:,:,2,:)));
 mxy_ori = mxy;
 NRMSE = sqrt(sum(sum((abs(mxy_ori) - abs(P_)).^2)))/ sqrt(sum(sum(abs(P_).^2)))
 
 %% Display the excitation pattern
 % load re-verse method results
+if 0 
 mxy_offcenter = complex(mxyz_offcenter(:,:,1,:), mxyz_offcenter(:,:,2,:));
 
 block = 1.01 * complex(ones(N1,1, 'double'), ones(N1,1, 'double'));
@@ -290,3 +263,4 @@ arrow([cx cy+(N1+1)*2], [cx+20 cy+(N1+1)*2], 'Color', 'w', 'Length', 7, 'TipAngl
 arrow([cx cy+(N1+1)*2], [cx cy-20+(N1+1)*2], 'Color', 'w', 'Length', 7, 'TipAngle', 25, 'Width', 1);
 text(cx+20, cy+1+(N1+1)*2 , '$\bf{x}$', 'Color', 'w', 'Interpreter', 'latex', 'FontSize', FontSize, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'top');
 text(cx+5 , cy-16+(N1+1)*2, '$\bf{y}$', 'Color', 'w', 'Interpreter', 'latex', 'FontSize', FontSize, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
+end

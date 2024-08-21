@@ -1,4 +1,4 @@
-function [GPred, kPred_tx] = apply_GIRF_tx(gradients_nominal, dt, R, tRR)
+function [GPred, kPred_tx] = apply_GIRF_tx(gradients_nominal, dt, R, tRR, root_path)
 % function [kPred, GPred] = apply_GIRF_tx(gradients_nominal, dt, R, tRR)
 %
 % % UNITS
@@ -29,7 +29,7 @@ if field_T == 1.4940
     girf_file = 'GIRF_20160501.mat';
 elseif field_T == 0.55
     % 0.55T Aera (NHLBI 2018)
-    girf_file = '.../multi_RF/b0b1_map_055T/GIRF_20200221_Duyn_method_coil2.mat';
+    girf_file = fullfile(root_path, '/multi_RF/b0b1_map_055T/GIRF_20200221_Duyn_method_coil2.mat');
     % girf_file = ones(3800,3);
 end
 

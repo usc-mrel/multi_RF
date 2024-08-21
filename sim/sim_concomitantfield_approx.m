@@ -2,13 +2,18 @@
 % Written by Namgyun Lee, Modified by Ziwei Zhao
 
 %% Clean slate
-% close all; clear all; clc;
-B0_swp  = [0.2 0.55 1.5 3 7];
-
-for iB0 = 1:length(B0_swp)
+close all; clear all; clc;
 
 %% Add paths
-cd('.../multi_RF/third_party/Bloch_simulator');
+setup_path;
+
+%% B0 sweep 
+B0_swp = [0.2 0.55 1.5 3 7];
+
+% uncomment this line to generate dense samples to reproduce figure 2B
+%B0_swp = [0.005 0.01 0.03 0.05 0.09 0.1 0.2 0.3 0.5 0.7 0.9 1.0 1.5 3.0 7.0];
+
+for iB0 = 1:length(B0_swp)
 
 %% Define parameters
 XFOV       = 8e-2;       % XFOV of unaliased excitation [m]
@@ -59,12 +64,12 @@ fprintf('RF/gradient dwell time     = %4.3f [usec]\n', dt*1e6);
 fprintf('Pulse duration             = %3.3f [msec]\n', T*1e3);
 fprintf('FWHM                       = %3.3f [cm]\n', FWHM*1e2);
 
-%% Caculate a k-space trajectory in the logical coordinate system [rad/m]
+%% Calculate a k-space trajectory in the logical coordinate system [rad/m]
 kx = A * (1 - t / T) .* cos(2 * pi * n * t / T);
 ky = A * (1 - t / T) .* sin(2 * pi * n * t / T);
 kz = zeros(Nt,1, 'double');
 
-%% Caculate gradient waveforms in the logical coordinate system [G/cm]
+%% Calculate gradient waveforms in the logical coordinate system [G/cm]
 % [rad/m] * [m/1e2cm] / ([rad/sec/T] * [T/1e4G] * [sec]) => [G/cm]
 Gx = -(A * 1e-2)/ (gamma * T * 1e-4) * (2 * pi * n * (1 - t / T) .* sin(2 * pi * n * t / T) + cos(2 * pi * n * t / T));
 Gy =  (A * 1e-2)/ (gamma * T * 1e-4) * (2 * pi * n * (1 - t / T) .* cos(2 * pi * n * t / T) - sin(2 * pi * n * t / T));
@@ -162,82 +167,13 @@ for idx2 = 1:Ny
     end
 end
 
-
-%% Display magnetization obtained with concomitant fields, RF, and conconmitant fields and RF
+%% save magnetization obtained with concomitant fields, RF, and conconmitant fields and RF
 mxy_concomitant    = complex(mxyz_concomitant(:,:,1), mxyz_concomitant(:,:,2));
 mxy_rf             = complex(mxyz_rf(:,:,1), mxyz_rf(:,:,2));
 mxy_concomitant_rf = complex(mxyz_concomitant_rf(:,:,1), mxyz_concomitant_rf(:,:,2));
 mxy_bloch_siegert  = complex(mxyz_bloch_siegert(:,:,1), mxyz_bloch_siegert(:,:,2));
 
-block = 1.5 * complex(ones(Nx,1, 'double'), ones(Nx,1, 'double'));
-mxy_montage = cat(2, mxy_concomitant, block, mxy_rf, block, mxy_concomitant_rf, block, mxy_bloch_siegert);
-
-block = NaN * complex(ones(Nx,1, 'double'), ones(Nx,1, 'double'));
-mxy_montage_angle = cat(2, mxy_concomitant, block, mxy_rf, block, mxy_concomitant_rf, block, mxy_bloch_siegert);
-
-FontSize = 12;
-
-cmap1 = cat(1, jet(256), [1 1 1]);
-cmap2 = cat(1, [1 1 1], hsv(256));
-
-figure('Color', 'w', 'Position', [0 2 1009 814]);
-h1 = subplot(4,1,1);
-imagesc(real(mxy_montage)); axis image off; colormap(gca, cmap1); 
-caxis([min(real(mxy_concomitant_rf(:))) max(real(mxy_concomitant_rf(:)))*1.5]);
-hc1 = colorbar;
-set(hc1, 'FontSize', FontSize);
-text(Ny/2         , 0, 'Conco. fields'                  , 'Color', 'k', 'FontSize', FontSize, 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center');
-text(Ny/2+(Ny+1)  , 0, 'RF field'                       , 'Color', 'k', 'FontSize', FontSize, 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center');
-text(Ny/2+(Ny+1)*2, 0, {'Conco. fields', 'and RF field'}, 'Color', 'k', 'FontSize', FontSize, 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center');
-text(Ny/2+(Ny+1)*3, 0, {'BS shift', 'Approximation'}    , 'Color', 'k', 'FontSize', FontSize, 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center');
-text(h1, 0, Nx/2, 'Real', 'Color', 'k', 'FontSize', FontSize, 'Rotation', 90,  'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center');
-
-h2 = subplot(4,1,2);
-imagesc(imag(mxy_montage)); axis image off; colormap(gca, cmap1); 
-caxis([min(imag(mxy_concomitant_rf(:))) 1.05]);
-hc2 = colorbar;
-set(hc2, 'FontSize', FontSize);
-text(h2, 0, Nx/2, 'Imaginary', 'Color', 'k', 'FontSize', FontSize, 'Rotation', 90, 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center');
-
-h3 = subplot(4,1,3);
-imagesc(abs(mxy_montage)); axis image off; colormap(gca, cmap1);
-caxis([min(abs(mxy_concomitant_rf(:))) 1.05]);
-hc3 = colorbar;
-set(hc3, 'FontSize', FontSize);
-text(h3, 0, Nx/2, 'Magnitude', 'Color', 'k', 'FontSize', FontSize, 'Rotation', 90, 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center');
-
-h4 = subplot(4,1,4);
-imagesc(angle(mxy_montage_angle)*180/pi); axis image off; colormap(gca, cmap2);
-caxis([-179 180]);
-hc4 = colorbar;
-set(hc4, 'FontSize', FontSize);
-text(h4, 0, Nx/2, 'Phase', 'Color', 'k', 'FontSize', FontSize, 'Rotation', 90, 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center');
-
-pos1 = get(h1, 'Position');
-pos2 = get(h2, 'Position');
-pos3 = get(h3, 'Position');
-pos4 = get(h4, 'Position');
-
-set(h1, 'Position', [pos1(1) pos1(2)                   pos1(3) pos1(4)]); % [left bottom width height]
-set(h2, 'Position', [pos1(1) pos1(2)-(pos1(4)+0.002)   pos1(3) pos1(4)]); % [left bottom width height]
-set(h3, 'Position', [pos1(1) pos1(2)-(pos1(4)+0.002)*2 pos1(3) pos1(4)]); % [left bottom width height]
-set(h4, 'Position', [pos1(1) pos1(2)-(pos1(4)+0.002)*3 pos1(3) pos1(4)]); % [left bottom width height]
-
-cpos1 = get(hc1, 'Position');
-cpos2 = get(hc2, 'Position');
-cpos3 = get(hc3, 'Position');
-cpos4 = get(hc4, 'Position');
-
-set(hc1, 'Position', [cpos1(1)-0.012 cpos1(2) cpos1(3) cpos1(4)]);
-set(hc2, 'Position', [cpos2(1)-0.012 cpos2(2) cpos2(3) cpos2(4)]);
-set(hc3, 'Position', [cpos3(1)-0.014 cpos3(2) cpos3(3) cpos3(4)]);
-set(hc4, 'Position', [cpos4(1)-0.014 cpos4(2) cpos4(3) cpos4(4)]);
-
-%export_fig(sprintf('spiral2d_%gT_dt%g_%dx%d_z%gcm_bloch_siegert_approximation', B0, dt, Nx, Ny, z_offset*1e2), '-m2', '-tif');
-%save(sprintf('results_%g%_dt%g_%dx%d.mat', B0, dt, Nx, Ny));
-%save('results_01T_7e_9dt_25Nxy.mat','mxyz_concomitant', 'mxyz_rf', 'mxyz_concomitant_rf', 'mxyz_bloch_siegert');
-
-%% display NMSE -- ziwei
+%% display NRMSE -- ziwei
 diff_real = sum((real(mxy_bloch_siegert) - real(mxy_concomitant_rf)).^2) / sum((real(mxy_concomitant_rf).^2));
 diff_imag = sum((imag(mxy_bloch_siegert) - imag(mxy_concomitant_rf)).^2) / sum((imag(mxy_concomitant_rf).^2));
 
@@ -255,7 +191,11 @@ diff.imag  = diff_imag;
 diff.mag   = diff_mag;
 diff.phase = diff_phase;
 
-% save results
-% save(sprintf('results_%.3fT_7e_10dt_25Nxy_dense.mat', B0), 'mxyz_concomitant', 'mxyz_rf', 'mxyz_concomitant_rf', 'mxyz_bloch_siegert', 'diff');
+%% save results
+cd('../figures/sim_results/Fig2_validation/');
+% if sample densely from 0.005T to 7T
+%cd('../figures/sim_results/Fig2_validation/densesamples/');
+
+save(sprintf('results_%.3fT_7e_10dt_25Nxy.mat', B0), 'mxyz_concomitant', 'mxyz_rf', 'mxyz_concomitant_rf', 'mxyz_bloch_siegert', 'diff');
 
 end
