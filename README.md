@@ -5,28 +5,33 @@ Code for generating simulation results for the original and proposed methods in 
 ## Set up
 
 ### Initialization
- - Please edit the path of the third party packages in **sim_concomitantfield_approx.m** line 11.
- - Please edit the path of the third party packages in **sim_concomitantfields_8channel.m** line 10-14.
- - Please edit the path of the third party packages in **sim_concomitantfields_1channel.m** line 13-19.
- - Please changes the path of the b0 and b1 maps in **sim_concomitantfields_8channel.m** line 48.
- - Please changes the path of the GIRF estimation in **sim_concomitantfields_8channel.m** line 82.
- - Please uncomment the code for selecting mask, b0 and b1 maps at different isocenters in **sim_concomitantfields_1channel.m** line 47-95.
- - Please check line 103 in **sim_concomitantfields_1channel.m** for appropriate off isocenter settings to match with relating mask, b1 and b0 map selections. 
+
+#### set up the path
+ - Please specify the root path where the main folder 'multi_RF' locates in **./sim/setup_path.m** line 3.
+
+#### compile .c files 
+ - Please compile **bloch.c** and **bloch_maxwell.c** scripts under **./third_party/Bloch_simulator** by using **mex** command in the MATLAB commanding window.
+
 
 ## Code Structure
  
-### Figure script: 
-- Figure 2 was generated using **./sim/sim_concomitantfield_approx.m**.
-- Figure 3 was generated using **./sim/sim_concomitantfields_8channel.m** as one sample case. 
-- Figure 4 was generated using **./figures/field_strength/mrm_figure3_fieldstrength.m**. The relating *.mat* files were generated using **./sim/sim_concomitantfields_8channel.m**
-- Figure 5 (A) simulation part was generated using **./figures/sim_results/phantom_055T/mrm_figure4_tailored_b0b1.mat**. The relating *.mat* files were generated using **./sim/sim_concomitantfields_1channel.m**
-- Supporting Figure S1 was generated using **./sim_results/distance/mrm_sup_figure1_distance.m**
-- Supporting Figure S2 was generated using **./sim_results/duration/mrm_sup_figure2_duration_v1.m**
+### Figures: 
+- To reproduce Figure 2, please run **./figures/sim_results/Fig2_validation/mrm_figure2.m**.
+  - To generate the excitation profiles (*.mat* files), please use MATLAB script **./sim/sim_concomitantfield_approx.m**
+- To reproduce Figure 3, please run **./figures/sim_results/Fig3_distance/mrm_figure3_distance.m**.
+  - To generate the excitation profiles (*.mat* files), please use MATLAB script **./figures/sim_results/Fig3_distance/generate_matfiles_scripts_fig3.m**
+- To reproduce Figure 4, please run **./figures/sim_results/Fig4_field_strength/mrm_figure4_fieldstrength.m**.
+  - To generate the related excitation profiles (*.mat* files), please use MATLAB script **./figures/sim_results/Fig4_field_strength/generate_matfiles_scripts_fig4.m**
+- To reproduce Figure 5 (A), please run **./figures/sim_results/Fig5_phantom_055T/mrm_figure5A_tailored_b0b1.m**.
+  - To generate the related excitation profiles (*.mat* files), please use MATLAB script  **./figures/sim_results/Fig5_phantom_055T/generate_matfiles_script_fig5.m**
+- Supporting Figure S1 was generated inside the script **./sim/sim_concomitantfields_8channel.m**
+- Supporting Figure S2 was generated using **./figures/sim_results/FigS2_duration/mrm_sup_figure2_duration.m**.
+  - To generate the related excitation profiles (*.mat* files), please use MATLAB script **./figures/sim_results/FigS2_duration/generate_matfiles_scripts_sup_fig2.m**
 
-### Demo script: 
+### Main simulation scripts:
 - **sim_concomitantfield_approx.m** generates concomitant field accuracy results (Figure 2).
-- **sim_concomitantfields_8channel.m** computes the excitation profiles using original and proposed methods at different isocenter and different main field strengths using 8 channel setups. The results can be saved as *.mat* format.
-- **sim_concomitantfields_1channel.m** computes the excitation profiles using original and proposed methods at different isocenter and different main field strengths using 1 channel setups. The results can be saved as *.mat* format.
+- **sim_concomitantfields_8channel.m** computes the excitation profiles using original and proposed methods at different isocenter, different main field strengths, different T2 values, and different undersampling foctor of the designed RF pulses using 8 channel setups. The resulting excitation profiles are saved as *.mat* format.
+- **sim_concomitantfields_1channel.m** computes the excitation profiles using original and proposed methods at different isocenter using 1 channel setups. The resulting excitation profiles are saved as *.mat* format.
 
 ### B0, B1+ and GIRF measurement datasets: 
 - GIRF measurements at 0.55T are provided in **./b0b1_map_055T/GIRF_20200221_Duyn_method_coil2.mat** 
@@ -54,6 +59,17 @@ Code for generating simulation results for the original and proposed methods in 
 [lsqrSOL](https://github.com/areslp/matlab/tree/master/lsqrSOL) for solving a linear non-square matrix problem. 
 
 [Bloch_simulation](http://mrsrl.stanford.edu/~brian/blochsim/) by Brian Hargreaves. 
+
+[pulseq](https://pulseq.github.io) by University Medical Center Freiburg.
+
+
+## MATLAB Dependencies
+To make sure the code is able to run, the following toolboxes need to be installed: 
+[MATLAB](https://www.mathworks.com/products/matlab.html)
+[Optimization Toolbox](https://www.mathworks.com/products/optimization.html)
+[Signal Processing Toolbox](https://www.mathworks.com/products/signal.html)
+[Image Processing Toolbox](https://www.mathworks.com/products/image-processing.html)
+[MATLAB Coder](https://www.mathworks.com/products/matlab-coder.html)
 
 
  ## Citing
