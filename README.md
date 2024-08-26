@@ -7,7 +7,7 @@ Code for generating simulation results for the original and proposed methods in 
 ### Initialization
 
 #### set up the path
- - Please specify the root path where the main folder `multi_RF` locates in `./sim/setup_path.m` line 3.
+ - Please modify line 3 of `./sim/setup_path.m` to declare the root path where the main folder `multi_RF` is located.
 
 #### compile .c files 
  - Please compile `bloch.c` and `bloch_maxwell.c` scripts under `./third_party/Bloch_simulator` by using `mex` command in the MATLAB commanding window.
@@ -28,7 +28,7 @@ Code for generating simulation results for the original and proposed methods in 
 - Supporting Figure S2 was generated using `./figures/sim_results/FigS2_duration/mrm_sup_figure2_duration.m`.
   - To generate the related excitation profiles (*.mat* files), please use MATLAB script `./figures/sim_results/FigS2_duration/generate_matfiles_scripts_sup_fig2.m`
 
-### Main simulation scripts:
+### Main simulation functions:
 - `sim_concomitantfield_approx.m` generates concomitant field accuracy results (Figure 2).
 - `sim_concomitantfields_8channel.m` computes the excitation profiles using original and proposed methods at different isocenter, different main field strengths, different T2 values, and different undersampling foctor of the designed RF pulses using 8 channel setups. The resulting excitation profiles are saved as *.mat* format.
 - `sim_concomitantfields_1channel.m` computes the excitation profiles using original and proposed methods at different isocenter using 1 channel setups. The resulting excitation profiles are saved as *.mat* format.
@@ -41,7 +41,7 @@ Code for generating simulation results for the original and proposed methods in 
 ### 2D Spin echo sequence:
 - `./seq/demo_pulseq_Pauly_1989_JMR_modified.mat` generates the 2D single slice spin echo sequence in Pulseq *.seq* file with the excitation RF replaced with the designed RF pulse.
 
-### Functions: 
+### Other functions: 
 - `./sim/funcs/STA_maxwell_system_matrix_con.m` calculates a small-tip-angle system matrix with the consideration of concomitant fields during the iterative RF design (proposed method).
 - `./sim/funcs/STA_maxwell_system_matrix.m` calculates a small-tip-angle system matrix without the consideration of concomitant fields during the iterative RF design (original method).
 - `./sim/funcs/figure_out_transformation_matrix.m` and `./sim/funcs/geometry` folder outputs the coordination transformation matrix that is used in the application of GIRF at 0.55T.
