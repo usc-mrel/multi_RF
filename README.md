@@ -24,7 +24,7 @@ Code for generating simulation results for the original and proposed methods in 
   - To generate the related excitation profiles (*.mat* files), please use MATLAB script `./figures/sim_results/Fig4_field_strength/generate_matfiles_scripts_fig4.m`
 - To reproduce Figure 5 (A), please run `./figures/sim_results/Fig5_phantom_055T/mrm_figure5A_tailored_b0b1.m`.
   - To generate the related excitation profiles (*.mat* files), please use MATLAB script  `./figures/sim_results/Fig5_phantom_055T/generate_matfiles_script_fig5.m`
-- Supporting Figure S1 was generated inside the script `./sim/sim_concomitantfields_8channel.m`
+- Supporting Figure S1 was generated inside the function `./sim/sim_concomitantfields_8channel.m` with the setting `display_figure = true`.
 - Supporting Figure S2 was generated using `./figures/sim_results/FigS2_duration/mrm_sup_figure2_duration.m`.
   - To generate the related excitation profiles (*.mat* files), please use MATLAB script `./figures/sim_results/FigS2_duration/generate_matfiles_scripts_sup_fig2.m`
 
