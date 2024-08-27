@@ -30,7 +30,7 @@ zoff = 5e-2;        % [m]
 % load related measurements
 load(fullfile(B0_map_path, '/F5_64/fieldmap_b0_fov220mm_matrix64_off_5cm_03312024.mat')); % B0 field map
 load(fullfile(B0_map_path, '/F5_64/mask_F5.mat')); % mask
-dicom_path = fullfile(B0_map_path, '/F5_64'); 
+dicom_path  = fullfile(B0_map_path, '/F5_64'); 
 output_path = [file_path, '03312024_05cm'];
 
 % generate blochmex .mat files

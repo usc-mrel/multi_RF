@@ -1,6 +1,6 @@
 %% Add paths
 
-root_path = '/Users/ziwei/Documents/matlab'; % where folder multi_RF is located
+root_path = '/Users/ziwei/Documents/matlab/'; % where folder multi_RF is located
 
 addpath(fullfile(root_path, '/multi_RF'));
 addpath(genpath(fullfile(root_path, '/multi_RF/sim/')));

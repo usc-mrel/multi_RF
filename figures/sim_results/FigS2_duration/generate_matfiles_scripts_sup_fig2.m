@@ -1,4 +1,4 @@
-%% Supporting Figure S2 script to generate .mat files 
+%% Supporting Figure S2 script to generate .mat files
 % sweep through different off-isocenters
 
 clear all; close all; clc;
@@ -6,8 +6,11 @@ clear all; close all; clc;
 cur_dir = pwd;
 cd('../../../sim');
 setup_path;
-
 output_path = fullfile(root_path, '/multi_RF/figures/sim_results/FigS2_duration/');
+
+paths.output_path = output_path;
+paths.root_path = root_path;
+display_figure  = 0;
 
 B0_list = [0.55];         % [tesla]
 zoff_list = [10]*1e-2;    % [m]
@@ -25,11 +28,11 @@ for i = 1 : length(T2_list)
     
         % generate blochmex .mat files
         concomitant_correct = 1; 
-        sim_concomitantfields_8channel;
+        sim_concomitantfields_8channels(B0, zoff, T2, fov, concomitant_correct, display_figure, paths);
     
         % generate bloch .mat files
         concomitant_correct = 0; 
-        sim_concomitantfields_8channel;
+        sim_concomitantfields_8channels(B0, zoff, T2, fov, concomitant_correct, display_figure, paths);
     
     end
 end
